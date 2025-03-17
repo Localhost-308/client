@@ -97,7 +97,7 @@ const Header = () => {
                 <ContainerLogoName>
                 {width < 768 ?
                     <img src={icon} style={{ width: '50px', height: '50px', margin: '10px 0 0 0' }} /> :
-                    <img src={logo} style={{ width: '170px', margin: '10px 0 0 0' }} />}
+                    <img src={logo} style={{ width: '100px', margin: '10px 0 0 0' }} />}
                 {width > 768 ? <NameCompany style={{marginTop: '8px'}}>Menu</NameCompany> : <></>}
                 <Button icon={<MenuOutlined style={{ color: "white" }} />}
                     type="link"

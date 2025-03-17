@@ -7,7 +7,7 @@ export const HeaderContainer = styled.header`
     display: flex;
     align-items: top;
     justify-content: flex-end;
-    background-color: #0d1116;
+    background-color:rgb(46, 85, 54);
 `;
 export const LogoExit = styled(LogoutOutlined)`
     font-size: 24px;

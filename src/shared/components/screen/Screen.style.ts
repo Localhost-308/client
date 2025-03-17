@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import backgroundImage from "../../../../public/kersys.png";
 
 export const ScreenContainer = styled.header`
     background-color: white;
@@ -7,7 +6,6 @@ export const ScreenContainer = styled.header`
     margin: -68px 32px 32px 32px; 
     border-radius: 9px;
     height: calc(84vh - 32px);
-    background-image: url(${backgroundImage});
     background-size: 800px;
     background-position: center;
     background-repeat: no-repeat;

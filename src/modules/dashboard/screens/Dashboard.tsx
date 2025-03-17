@@ -45,7 +45,7 @@ const Dashboard: React.FC = () => {
     // BREADCRUMB
     const listBreadcrumb = [
         {
-            name: 'Requisições Pendentes para Aprovação'
+            name: 'Dashboard'
         }
     ]
 

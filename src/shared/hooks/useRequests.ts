@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import useAuthInterceptor from "./useAuthInterceptor";
 import ConnectionAPI, { connectionAPIPost, MethodType } from "../functions/connection/connectionAPI";
 import { URL_AUTH } from "../constants/urls";
 import { ERROR_AUTH } from "../constants/errosStatus";
@@ -9,7 +10,6 @@ import { AuthType } from "../types/AuthType";
 import { useGlobalReducer } from "../../store/reducers/globalReducer/useGlobalReducer";
 import { NotificationEnum } from "../types/NotificationType";
 import { DashboardRoutesEnum } from "../../modules/dashboard/routes";
-import useAuthInterceptor from "./useAuthInterceptor";
 
 
 export const useRequests = () => {
