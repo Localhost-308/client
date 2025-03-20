@@ -1,8 +1,14 @@
-import React, { lazy } from "react";
+import React, { lazy, useRef, useState, useEffect } from "react";
+import { Select } from 'antd';
+import ReactDOM from 'react-dom';
+import Column from "antd/es/table/Column";
+import * as echarts from 'echarts';
+import { EChartOption } from 'echarts';
 
 const Screen = lazy(() => import("../../../shared/components/screen/Screen"));
 
 const Dashboard: React.FC = () => {
+    const chartRef = useRef<HTMLDivElement>(null);    
     // const navigate = useNavigate();
     // const { request } = useRequests();
     // const { isLoading, setLoading } = useLoading();
@@ -11,6 +17,19 @@ const Dashboard: React.FC = () => {
     //     pageSize: 5,
     //     total: 0,
     // });
+
+    const handleTree = (value: string) => {
+        console.log(`selected ${value}`);
+    };
+
+    const handleUf = (value: string) => {
+        console.log(`selected ${value}`);
+    };
+
+    const ufs = [
+        'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG',
+        'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+    ];
 
     // useEffect(() => {
     //     if(pagination.current) fetchData(pagination.current);
@@ -40,8 +59,75 @@ const Dashboard: React.FC = () => {
     //       setLoading(false);
     //     }
     // };
-
-
+ 
+    useEffect(() => {
+        const chartDom = chartRef.current; 
+        if (chartDom) {
+            const myChart = echarts.init(chartDom);
+            
+            const option: EChartOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    top: '10%',
+                    containLabel: true
+                },
+                legend: {
+                    data: ['Nativa', 'Exótica', 'Misturada'], 
+                },
+                xAxis: [{
+                    type: 'category',
+                    data: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio'], 
+                    axisTick: { alignWithLabel: true },
+                }],
+                yAxis: [{ type: 'value' }],
+                series: [
+                    {
+                        name: 'Nativa',
+                        type: 'bar',
+                        barWidth: '20%',
+                        data: [50, 80, 60, 90, 70], 
+                        itemStyle: {
+                            color: '#007BFF',
+                            borderRadius: [8, 8, 0, 0]
+                        },
+                    },
+                    {
+                        name: 'Exótica',
+                        type: 'bar',
+                        barWidth: '20%',
+                        data: [55, 85, 65, 95, 75], 
+                        itemStyle: {
+                            color: '#FF5733',
+                            borderRadius: [8, 8, 0, 0]
+                        },
+                    },
+                    {
+                        name: 'Misturada',
+                        type: 'bar',
+                        barWidth: '20%',
+                        data: [60, 90, 70, 100, 80], 
+                        itemStyle: {
+                            color: '#28A745',
+                            borderRadius: [8, 8, 0, 0]
+                        },
+                    }
+                ]
+            };
+            
+            myChart.setOption(option);
+            
+            return () => {
+                myChart.dispose();
+            };
+        }
+    }, []); 
+      
     // BREADCRUMB
     const listBreadcrumb = [
         {
@@ -86,11 +172,28 @@ const Dashboard: React.FC = () => {
     //     setItemStorage(AUCTION_ID, String(auctionId));
     //     navigate(DashboardRoutesEnum.DASHBOARD_APROVE);
     // }
-
+    
     return(
         <Screen listBreadcrumb={listBreadcrumb}>
             {/* {isLoading && <FirstScreen/>} */}
             <h2>Dashboard</h2>
+            <Select
+                placeholder={"Selecione"}
+                style={{ width: 120, marginRight: 10 }}
+                onChange={handleTree}
+                options={[
+                    { value: 'nativa', label: 'nativa' },
+                    { value: 'exotica', label: 'exótica' },
+                    { value: 'misturada', label: 'misturada' },
+                 ]}
+            />
+            <Select
+                placeholder={"Selecione"}
+                onChange={handleUf}
+                style={{ width: 120 }}
+                options={ufs.map((uf) => ({ value: uf }))}
+            />
+             <div ref={chartRef} style={{ height: '400px', marginBottom: '10px' }}></div>
         </Screen> 
     )
 }
