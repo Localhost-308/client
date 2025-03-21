@@ -1,4 +1,7 @@
-import React, { lazy } from "react";
+import React, { lazy, useRef, useState, useEffect } from "react";
+import { Select } from 'antd';
+import * as echarts from 'echarts';
+import { EChartOption } from 'echarts';
 
 const Screen = lazy(() => import("../../../shared/components/screen/Screen"));
 
@@ -11,6 +14,11 @@ const Dashboard: React.FC = () => {
     //     pageSize: 5,
     //     total: 0,
     // });
+    const chartRefArea = useRef<HTMLDivElement>(null); 
+    const handleArea = (value: string) => {
+        console.log(`selected ${value}`);
+    };
+
 
     // useEffect(() => {
     //     if(pagination.current) fetchData(pagination.current);
@@ -40,6 +48,66 @@ const Dashboard: React.FC = () => {
     //       setLoading(false);
     //     }
     // };
+
+    useEffect(() => {
+        const chartDom = chartRefArea.current; 
+        if (chartDom) {
+            const chartArea= echarts.init(chartDom);
+            
+            const option: EChartOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    top: '10%',
+                    containLabel: true
+                },
+                legend: {
+                    data: ['Area Inicial', 'Area Recuperada'], 
+                },
+                xAxis: [{
+                    type: 'category',
+                    data: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio'], 
+                    axisTick: { alignWithLabel: true },
+                }],
+                yAxis: [{
+                    type: 'value'
+                }],
+                series: [
+                    {
+                        name: 'Area Inicial',
+                        type: 'bar',
+                        stack: 'Nativa', 
+                        barWidth: '50%',
+                        data: [20, 30, 40, 50, 60], 
+                        itemStyle: {
+                            color: '#28A745',
+                        },
+                    },
+                    {
+                        name: 'Area Recuperada',
+                        type: 'bar',
+                        stack: 'Nativa', 
+                        barWidth: '50%',
+                        data: [30, 50, 20, 40, 10], 
+                        itemStyle: {
+                            color: '#0056b3', 
+                        },
+                    },
+                ]
+            };
+            
+            chartArea.setOption(option);
+            
+            return () => {
+                chartArea.dispose();
+            };
+        }
+    }, []);
 
 
     // BREADCRUMB
@@ -91,6 +159,12 @@ const Dashboard: React.FC = () => {
         <Screen listBreadcrumb={listBreadcrumb}>
             {/* {isLoading && <FirstScreen/>} */}
             <h2>Dashboard</h2>
+            <Select
+                placeholder={"Selecione"}
+                onChange={handleArea}
+                style={{ width: 120 }}
+            />
+            <div ref={chartRefArea} style={{ height: '400px', marginBottom: '10px' }}></div>
         </Screen> 
     )
 }
