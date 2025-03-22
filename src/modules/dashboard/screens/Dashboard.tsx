@@ -1,18 +1,21 @@
-import React, { lazy, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import InputDateAntd, { dateAntd } from "../../../shared/components/inputs/inputDateAntd/InputDateAntd";
 
+import Screen from "../../../shared/components/screen/Screen";
 import Button from "../../../shared/components/buttons/button/Button";
 import { BoxButtons } from "../../../shared/components/styles/boxButtons.style";
 import { LimitedContainer } from "../../../shared/components/styles/limited.styled";
 import { useRequests } from "../../../shared/hooks/useRequests";
-import Screen from "../../../shared/components/screen/Screen";
 import { URL_AREA_INFORMATION } from "../../../shared/constants/urls";
 import { MethodsEnum } from "../../../shared/enums/methods.enum";
+import { useGlobalReducer } from "../../../store/reducers/globalReducer/useGlobalReducer";
+import { NotificationEnum } from "../../../shared/types/NotificationType";
 
 
 const Dashboard: React.FC = () => {
     // const navigate = useNavigate();
     const { request } = useRequests();
+    const {setNotification} = useGlobalReducer();
     // const { isLoading, setLoading } = useLoading();
     const [ startDate, setStartDate ] = useState<string>('');
     const [ endDate, setEndDate ] = useState<string>('');
@@ -69,13 +72,15 @@ const Dashboard: React.FC = () => {
                 MethodsEnum.GET,
                 setInfo
             )
+        }else{
+            setNotification('Definir Data Inicial e Final!', NotificationEnum.WARNING)
         }
     }
 
     return(
         <Screen listBreadcrumb={listBreadcrumb}>
             {/* {isLoading && <FirstScreen/>} */}
-            <h2>Dashboard</h2>
+            <h2>Filtro do Período</h2>
             <BoxButtons>
                 <LimitedContainer width={350}>
                     <InputDateAntd onChange={(event: dateAntd) => {setStartDate(`${event.$y}-${event.$M + 1}-${event.$D}`)}}
