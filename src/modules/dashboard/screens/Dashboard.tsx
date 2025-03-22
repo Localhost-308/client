@@ -1,8 +1,18 @@
-import React, { lazy } from "react";
-
+import React, { lazy, useRef, useEffect, useState } from "react";
+ import { Select } from 'antd';
+ import * as echarts from 'echarts';
+ import { EChartOption } from 'echarts';
+import { AreaInformationType } from "../../../shared/types/AreaInformationType";
 const Screen = lazy(() => import("../../../shared/components/screen/Screen"));
 
 const Dashboard: React.FC = () => {
+    const chartSurvival = useRef<HTMLDivElement>(null); 
+    const [area, setArea] = useState<AreaInformationType[]>([]);
+  
+    const handleArea = (value: string) => {
+        console.log(`selected ${value}`);
+    };
+
     // const navigate = useNavigate();
     // const { request } = useRequests();
     // const { isLoading, setLoading } = useLoading();
@@ -41,6 +51,55 @@ const Dashboard: React.FC = () => {
     //     }
     // };
 
+    useEffect(() => {
+        /*try {
+            request(`${URL_AREA}/tree`, MethodsEnum.GET, setArea);*/
+            
+        const chartDom = chartSurvival.current; 
+        if (chartDom) {
+            const myChart = echarts.init(chartDom);
+
+            //const  = dataToUse.map((area: AreaType) => area.areaTitle);
+            
+            const option: EChartOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    top: '10%',
+                    containLabel: true
+                },
+                xAxis: [{
+                    type: 'category',
+                    //data: measurementDate;
+                    axisTick: { alignWithLabel: true },
+                }],
+                yAxis: [{ type: 'value' }],
+                series: [
+                    {
+                        name: 'Nativa',
+                        type: 'bar',
+                        barWidth: '40%',
+                        //data: survivalRate, 
+                        itemStyle: {
+                            color: '#007BFF',
+                            borderRadius: [8, 8, 0, 0]
+                        },
+                    },
+                ]
+            };
+            
+            myChart.setOption(option);
+            
+            return () => {
+                myChart.dispose();
+            };
+        }
+    }, []); 
 
     // BREADCRUMB
     const listBreadcrumb = [
@@ -91,6 +150,12 @@ const Dashboard: React.FC = () => {
         <Screen listBreadcrumb={listBreadcrumb}>
             {/* {isLoading && <FirstScreen/>} */}
             <h2>Dashboard</h2>
+            <Select
+                 placeholder={"Selecione"}
+                 onChange={handleArea}
+                 style={{ width: 120 }}
+             />
+            <div ref={chartSurvival} style={{ height: '400px', marginBottom: '10px' }}></div>
         </Screen> 
     )
 }
