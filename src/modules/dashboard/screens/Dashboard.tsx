@@ -1,46 +1,26 @@
-import React, { lazy } from "react";
+import React, { lazy, useEffect, useState } from "react";
+import InputDateAntd, { dateAntd } from "../../../shared/components/inputs/inputDateAntd/InputDateAntd";
 
-const Screen = lazy(() => import("../../../shared/components/screen/Screen"));
+import Button from "../../../shared/components/buttons/button/Button";
+import { BoxButtons } from "../../../shared/components/styles/boxButtons.style";
+import { LimitedContainer } from "../../../shared/components/styles/limited.styled";
+import { useRequests } from "../../../shared/hooks/useRequests";
+import Screen from "../../../shared/components/screen/Screen";
+import { URL_AREA_INFORMATION } from "../../../shared/constants/urls";
+import { MethodsEnum } from "../../../shared/enums/methods.enum";
+
 
 const Dashboard: React.FC = () => {
     // const navigate = useNavigate();
-    // const { request } = useRequests();
+    const { request } = useRequests();
     // const { isLoading, setLoading } = useLoading();
-    // const [ pagination, setPagination ] = useState<TablePaginationConfig>({
-    //     current: 1,
-    //     pageSize: 5,
-    //     total: 0,
-    // });
+    const [ startDate, setStartDate ] = useState<string>('');
+    const [ endDate, setEndDate ] = useState<string>('');
+    const [ info, setInfo ] = useState();
 
-    // useEffect(() => {
-    //     if(pagination.current) fetchData(pagination.current);
-    // }, [pagination.current])
-
-    // PAGINATION
-    // const handleTableChange = (newPagination: TablePaginationConfig) => {
-    //     setLoading(true);
-    //     if(newPagination) setPagination({...pagination, ...newPagination});
-    // };
-
-    // const fetchData = async (page: number) => {
-    //     setLoading(true);
-    //     try {
-    //         request(`${URL_AUCTION}?status=2&page=${page}`, MethodsEnum.GET, setAuctions)
-    //         .then((data: any) => {
-    //             setPagination({
-    //                 ...pagination,
-    //                 current: data.current_page,
-    //                 pageSize: data.per_page,
-    //                 total: data.total,
-    //             });
-    //         })
-    //     } catch (error) {
-    //       console.error('Erro ao buscar dados:', error);
-    //     } finally {
-    //       setLoading(false);
-    //     }
-    // };
-
+    useEffect(() => {
+        console.log(info)
+    }, [info])
 
     // BREADCRUMB
     const listBreadcrumb = [
@@ -81,16 +61,36 @@ const Dashboard: React.FC = () => {
     //     }
     // ];
     
-    // APPROVE
-    // const handleApprove = async (auctionId: number) => {
-    //     setItemStorage(AUCTION_ID, String(auctionId));
-    //     navigate(DashboardRoutesEnum.DASHBOARD_APROVE);
-    // }
+    // UTILS
+    const handleFilter = () => {
+        if(startDate && endDate){
+            request(
+                `${URL_AREA_INFORMATION}?start_date=${startDate}&end_date=${endDate}`, 
+                MethodsEnum.GET,
+                setInfo
+            )
+        }
+    }
 
     return(
         <Screen listBreadcrumb={listBreadcrumb}>
             {/* {isLoading && <FirstScreen/>} */}
             <h2>Dashboard</h2>
+            <BoxButtons>
+                <LimitedContainer width={350}>
+                    <InputDateAntd onChange={(event: dateAntd) => {setStartDate(`${event.$y}-${event.$M + 1}-${event.$D}`)}}
+                        maxDate="31/12/2025"
+                        margin="0px 0px 15px 0px" 
+                        label="Data Inicial"
+                        id="start_date" />
+                    <InputDateAntd onChange={(event: dateAntd) => {setEndDate(`${event.$y}-${event.$M + 1}-${event.$D}`)}}
+                        maxDate="01/01/2040"
+                        margin="0px 0px 15px 0px" 
+                        label="Data Final"
+                        id="end_date" />
+                    <Button id="filter" text="Filtrar" type="button" onClick={() => handleFilter()}/>
+                </LimitedContainer>
+            </BoxButtons>
         </Screen> 
     )
 }
