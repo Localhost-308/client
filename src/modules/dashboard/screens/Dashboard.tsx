@@ -64,7 +64,7 @@ const Dashboard: React.FC = () => {
         const fetchData = async () => {
           setLoading(true);
           try {
-            await request(`${URL_AREA_INFORMATION}`, MethodsEnum.GET, setArea);
+            await request(`${URL_AREA_INFORMATION}/tree`, MethodsEnum.GET, setArea);
           } catch (error) {
             setNotification(String(error), NotificationEnum.ERROR);
           } finally {
@@ -76,7 +76,7 @@ const Dashboard: React.FC = () => {
         
         const handleResize = () => {
         };
-      
+        
         window.addEventListener('resize', handleResize);
       
         return () => {
@@ -90,11 +90,9 @@ const Dashboard: React.FC = () => {
         if (chartDom) {
             const myChart = echarts.init(chartDom);
 
-            //const  = dataToUse.map((area: AreaType) => area.areaTitle);
             const measurementDates = area.map((item) => item.measurement_date.toString());
+            const survivalRate = area.map((item => item.survival_rate)); 
 
-            console.log("Measurement Dates:", measurementDates);
-            
             const option: EChartOption = {
                 tooltip: {
                     trigger: 'axis',
@@ -118,7 +116,7 @@ const Dashboard: React.FC = () => {
                         name: 'Nativa',
                         type: 'bar',
                         barWidth: '40%',
-                        data: [], 
+                        data: survivalRate, 
                         itemStyle: {
                             color: '#007BFF',
                             borderRadius: [8, 8, 0, 0]
