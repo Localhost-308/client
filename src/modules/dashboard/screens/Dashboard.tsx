@@ -1,11 +1,20 @@
 import React, { lazy, useRef, useEffect, useState } from "react";
- import { Select } from 'antd';
- import * as echarts from 'echarts';
- import { EChartOption } from 'echarts';
+import { Select } from 'antd';
+import * as echarts from 'echarts';
+import { EChartOption } from 'echarts';
 import { AreaInformationType } from "../../../shared/types/AreaInformationType";
+import { MethodsEnum } from "../../../shared/enums/methods.enum";
+import { useLoading } from "../../../shared/components/loadingProvider/LoadingProvider";
+import { useRequests } from '../../../shared/hooks/useRequests';
+import { NotificationEnum } from "../../../shared/types/NotificationType";
+import { URL_AREA_INFORMATION } from '../../../shared/constants/urls';
+import { useGlobalReducer } from "../../../store/reducers/globalReducer/useGlobalReducer";
 const Screen = lazy(() => import("../../../shared/components/screen/Screen"));
 
 const Dashboard: React.FC = () => {
+    const { request } = useRequests();
+    const { setNotification } = useGlobalReducer();
+    const { isLoading, setLoading } = useLoading();
     const chartSurvival = useRef<HTMLDivElement>(null); 
     const [area, setArea] = useState<AreaInformationType[]>([]);
   
@@ -52,14 +61,39 @@ const Dashboard: React.FC = () => {
     // };
 
     useEffect(() => {
-        /*try {
-            request(`${URL_AREA}/tree`, MethodsEnum.GET, setArea);*/
-            
+        const fetchData = async () => {
+          setLoading(true);
+          try {
+            await request(`${URL_AREA_INFORMATION}`, MethodsEnum.GET, setArea);
+          } catch (error) {
+            setNotification(String(error), NotificationEnum.ERROR);
+          } finally {
+            setLoading(false);
+          }
+        };
+      
+        fetchData();
+        
+        const handleResize = () => {
+        };
+      
+        window.addEventListener('resize', handleResize);
+      
+        return () => {
+          window.removeEventListener('resize', handleResize);
+        };
+      }, []);
+    
+    useEffect(() => {
+        
         const chartDom = chartSurvival.current; 
         if (chartDom) {
             const myChart = echarts.init(chartDom);
 
             //const  = dataToUse.map((area: AreaType) => area.areaTitle);
+            const measurementDates = area.map((item) => item.measurement_date.toString());
+
+            console.log("Measurement Dates:", measurementDates);
             
             const option: EChartOption = {
                 tooltip: {
@@ -75,7 +109,7 @@ const Dashboard: React.FC = () => {
                 },
                 xAxis: [{
                     type: 'category',
-                    //data: measurementDate;
+                    data: measurementDates,
                     axisTick: { alignWithLabel: true },
                 }],
                 yAxis: [{ type: 'value' }],
@@ -84,7 +118,7 @@ const Dashboard: React.FC = () => {
                         name: 'Nativa',
                         type: 'bar',
                         barWidth: '40%',
-                        //data: survivalRate, 
+                        data: [], 
                         itemStyle: {
                             color: '#007BFF',
                             borderRadius: [8, 8, 0, 0]
