@@ -1,99 +1,103 @@
-import React, { lazy, useRef, useEffect, useState } from "react";
-import { Select } from 'antd';
-import * as echarts from 'echarts';
-import { EChartOption } from 'echarts';
-import { AreaInformationType } from "../../../shared/types/AreaInformationType";
+
+import React, { useEffect, useRef, useState } from "react";
+import InputDateAntd, { dateAntd } from "../../../shared/components/inputs/inputDateAntd/InputDateAntd";
+
+import Screen from "../../../shared/components/screen/Screen";
+import Button from "../../../shared/components/buttons/button/Button";
+import FirstScreen from "../../firstScreen";
+import ChartsContainer from "../../../shared/components/charts/ChartsContainer";
+import { LimitedContainer } from "../../../shared/components/styles/limited.styled";
+import { useRequests } from "../../../shared/hooks/useRequests";
+import { URL_AREA_INFORMATION, URL_AREA_INFORMATION_TREE } from "../../../shared/constants/urls";
 import { MethodsEnum } from "../../../shared/enums/methods.enum";
-import { useLoading } from "../../../shared/components/loadingProvider/LoadingProvider";
-import { useRequests } from '../../../shared/hooks/useRequests';
-import { NotificationEnum } from "../../../shared/types/NotificationType";
-import { URL_AREA_INFORMATION } from '../../../shared/constants/urls';
 import { useGlobalReducer } from "../../../store/reducers/globalReducer/useGlobalReducer";
-const Screen = lazy(() => import("../../../shared/components/screen/Screen"));
+import { NotificationEnum } from "../../../shared/types/NotificationType";
+import { CO2Type } from "../../../shared/types/Co2Type";
+import { useLoading } from "../../../shared/components/loadingProvider/LoadingProvider";
+import { EChartOption } from "echarts";
+import { AreaInformationTreeType } from "../../../shared/types/AreaInformationTreeType";
 
 const Dashboard: React.FC = () => {
     const { request } = useRequests();
     const { setNotification } = useGlobalReducer();
     const { isLoading, setLoading } = useLoading();
-    const chartSurvival = useRef<HTMLDivElement>(null); 
-    const [area, setArea] = useState<AreaInformationType[]>([]);
-  
-    const handleArea = (value: string) => {
-        console.log(`selected ${value}`);
-    };
+    const [ startDate, setStartDate ] = useState<string>('');
+    const [ endDate, setEndDate ] = useState<string>('');
+    const [ co2, setCO2Info ] = useState<CO2Type[]>([]);
+    const [ tree, setTree ] = useState<AreaInformationTreeType[]>([]);
+    // CHARTS
+    const [ allChartsOptions, setAllChartsOptions ] = useState<{options:any;title:string;fraction:number}[]>([]);
+    const [ chartCO2Options, setChartCO2Options ] = useState({});
+    const [ chartExampleOptions, setChartExampleOptions ] = useState({});
+    const [ chartSurvivalOptions, setChartSurvivalOptions ] = useState({});
 
-    // const navigate = useNavigate();
-    // const { request } = useRequests();
-    // const { isLoading, setLoading } = useLoading();
-    // const [ pagination, setPagination ] = useState<TablePaginationConfig>({
-    //     current: 1,
-    //     pageSize: 5,
-    //     total: 0,
-    // });
+    useEffect(() => {
+        const arrayCharts: any[] = []
+        if (Object.keys(chartCO2Options).length > 0) arrayCharts.push({ options: chartCO2Options, title: "Emissões de CO2", fraction: 1});
+        if (Object.keys(chartExampleOptions).length > 0) arrayCharts.push({ options: chartExampleOptions, title: "Exemplo", fraction: 2});
+        if (Object.keys(chartSurvivalOptions).length > 0) arrayCharts.push({ options: chartSurvivalOptions, title: "Taxa de Sobrevivência", fraction: 2});
+        if (arrayCharts.length > 0){
+            setAllChartsOptions([]);
+            arrayCharts.forEach((chart) => {
+                setAllChartsOptions((prevData) => [
+                    ...prevData,
+                    chart
+                ]);
+            })
+        }
+    }, [
+        chartCO2Options, 
+        chartExampleOptions,
+        chartSurvivalOptions
+    ]);
 
-    // useEffect(() => {
-    //     if(pagination.current) fetchData(pagination.current);
-    // }, [pagination.current])
-
-    // PAGINATION
-    // const handleTableChange = (newPagination: TablePaginationConfig) => {
-    //     setLoading(true);
-    //     if(newPagination) setPagination({...pagination, ...newPagination});
-    // };
-
-    // const fetchData = async (page: number) => {
-    //     setLoading(true);
-    //     try {
-    //         request(`${URL_AUCTION}?status=2&page=${page}`, MethodsEnum.GET, setAuctions)
-    //         .then((data: any) => {
-    //             setPagination({
-    //                 ...pagination,
-    //                 current: data.current_page,
-    //                 pageSize: data.per_page,
-    //                 total: data.total,
-    //             });
-    //         })
-    //     } catch (error) {
-    //       console.error('Erro ao buscar dados:', error);
-    //     } finally {
-    //       setLoading(false);
-    //     }
-    // };
+    // EVENTS
+    useEffect(() => {
+        if(co2.length > 0) {
+            const orderedCO2 = [...co2].sort(
+                (a,b) => new Date(a.measurement_date).getTime() - new Date(b.measurement_date).getTime()
+            );
+            const dates = orderedCO2.map((oc) => oc.measurement_date);
+            const co2Ordered = orderedCO2.map((oc) => oc.total_avoided_co2)
+            setChartCO2Options({
+                xAxis: {
+                    type: 'category',
+                    data: dates
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                    data: co2Ordered,
+                    type: 'line',
+                    smooth: true
+                    }
+                ]
+            });
+        };
+    }, [co2]);
 
     useEffect(() => {
         const fetchData = async () => {
           setLoading(true);
           try {
-            await request(`${URL_AREA_INFORMATION}/tree`, MethodsEnum.GET, setArea);
+            await request(`${URL_AREA_INFORMATION_TREE}`, MethodsEnum.GET, setTree);
           } catch (error) {
             setNotification(String(error), NotificationEnum.ERROR);
           } finally {
             setLoading(false);
           }
         };
-      
         fetchData();
-        
-        const handleResize = () => {
-        };
-        
-        window.addEventListener('resize', handleResize);
-      
-        return () => {
-          window.removeEventListener('resize', handleResize);
-        };
-      }, []);
+    }, []);
     
-    useEffect(() => {
-        
-        const chartDom = chartSurvival.current; 
-        if (chartDom) {
-            const myChart = echarts.init(chartDom);
+    useEffect(() => { 
+        if (tree) {
+            const measurementDates = tree.map((item) => item.measurement_date.toString());
+            const survivalRate = tree.map((item => item.survival_rate)); 
 
-            const measurementDates = area.map((item) => item.measurement_date.toString());
-            const survivalRate = area.map((item => item.survival_rate)); 
-
-            const option: EChartOption = {
+            setChartSurvivalOptions ({
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: { type: 'shadow' },
@@ -113,7 +117,7 @@ const Dashboard: React.FC = () => {
                 yAxis: [{ type: 'value' }],
                 series: [
                     {
-                        name: 'Nativa',
+                        name: 'Sobrevivência',
                         type: 'bar',
                         barWidth: '40%',
                         data: survivalRate, 
@@ -123,14 +127,8 @@ const Dashboard: React.FC = () => {
                         },
                     },
                 ]
-            };
-            
-            myChart.setOption(option);
-            
-            return () => {
-                myChart.dispose();
-            };
-        }
+            });
+        };
     }, []); 
 
     // BREADCRUMB
@@ -139,55 +137,42 @@ const Dashboard: React.FC = () => {
             name: 'Dashboard'
         }
     ]
-
-    // TABLE
-    // const columns: TableProps<AuctionMinimalType>['columns'] = [
-    //     {
-    //         title: 'ID',
-    //         dataIndex: 'id',
-    //         key: 'id',
-    //         align: 'center',
-    //         sorter: (a,b) => a.id - b.id,
-    //         render: (text) => <p>{text}</p>,
-    //     },
-    //     {
-    //         title: 'Código',
-    //         dataIndex: 'number',
-    //         key: 'number',
-    //         align: 'center',
-    //         render: (text) => <p>{text}</p>,
-    //     },
-    //     {
-    //         title: 'Encerrado em',
-    //         dataIndex: 'expires_on',
-    //         key: 'expires_on',
-    //         align: 'center',
-    //         render: (_,text) => <p>{formatDate(text.expires_on)}</p>,
-    //     },
-    //     {
-    //         title: 'Aprovar',
-    //         key: 'approve',
-    //         align: 'center',
-    //         render: (_,text) => <Button type="button" text="Dashboard" id="approve_btn" onClick={() => handleApprove(text.id)}/>,
-    //     }
-    // ];
     
-    // APPROVE
-    // const handleApprove = async (auctionId: number) => {
-    //     setItemStorage(AUCTION_ID, String(auctionId));
-    //     navigate(DashboardRoutesEnum.DASHBOARD_APROVE);
-    // }
+    // UTILS
+    const handleFilter = async () => {
+        if(startDate && endDate){
+            setLoading(true)
+            await Promise.all([
+                request(`${URL_AREA_INFORMATION}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setCO2Info),
+                request(`${URL_AREA_INFORMATION_TREE}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setTree)
+            ]).finally(() => setLoading(false))
+        }else{
+            setNotification('Definir Data Inicial e Final!', NotificationEnum.WARNING)
+        }
+    }
 
     return(
         <Screen listBreadcrumb={listBreadcrumb}>
-            {/* {isLoading && <FirstScreen/>} */}
-            <h2>Dashboard</h2>
-            <Select
-                 placeholder={"Selecione"}
-                 onChange={handleArea}
-                 style={{ width: 120 }}
-             />
-            <div ref={chartSurvival} style={{ height: '400px', marginBottom: '10px' }}></div>
+            {isLoading && <FirstScreen/>}
+            <h2>Filtro do Período</h2>  
+                <LimitedContainer width={350}>
+                    <InputDateAntd onChange={(event: dateAntd) => {setStartDate(`${event.$y}-${event.$M + 1}-${event.$D}`)}}
+                        maxDate="31/12/2025"
+                        margin="0px 0px 15px 0px" 
+                        label="Data Inicial"
+                        id="start_date" />
+                </LimitedContainer>
+                <LimitedContainer width={350}>
+                    <InputDateAntd onChange={(event: dateAntd) => {setEndDate(`${event.$y}-${event.$M + 1}-${event.$D}`)}}
+                        maxDate="01/01/2040"
+                        margin="0px 0px 15px 0px" 
+                        label="Data Final"
+                        id="end_date" />
+                </LimitedContainer>
+                <Button id="filter" text="Filtrar" type="button" onClick={() => handleFilter()}/>
+           
+            <ChartsContainer charts={allChartsOptions} />
+
         </Screen> 
     )
 }
