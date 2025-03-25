@@ -14,7 +14,6 @@ import { useGlobalReducer } from "../../../store/reducers/globalReducer/useGloba
 import { NotificationEnum } from "../../../shared/types/NotificationType";
 import { CO2Type } from "../../../shared/types/Co2Type";
 import { useLoading } from "../../../shared/components/loadingProvider/LoadingProvider";
-import { EChartOption } from "echarts";
 import { AreaInformationTreeType } from "../../../shared/types/AreaInformationTreeType";
 
 const Dashboard: React.FC = () => {
@@ -24,7 +23,7 @@ const Dashboard: React.FC = () => {
     const [ startDate, setStartDate ] = useState<string>('');
     const [ endDate, setEndDate ] = useState<string>('');
     const [ co2, setCO2Info ] = useState<CO2Type[]>([]);
-    const [ tree, setTree ] = useState<AreaInformationTreeType[]>([]);
+    const [ tree, setTreeInfo ] = useState<AreaInformationTreeType[]>([]);
     // CHARTS
     const [ allChartsOptions, setAllChartsOptions ] = useState<{options:any;title:string;fraction:number}[]>([]);
     const [ chartCO2Options, setChartCO2Options ] = useState({});
@@ -82,7 +81,7 @@ const Dashboard: React.FC = () => {
         const fetchData = async () => {
           setLoading(true);
           try {
-            await request(`${URL_AREA_INFORMATION_TREE}`, MethodsEnum.GET, setTree);
+            await request(`${URL_AREA_INFORMATION_TREE}`, MethodsEnum.GET, setTreeInfo);
           } catch (error) {
             setNotification(String(error), NotificationEnum.ERROR);
           } finally {
@@ -93,11 +92,13 @@ const Dashboard: React.FC = () => {
     }, []);
     
     useEffect(() => { 
-        if (tree) {
-            const measurementDates = tree.map((item) => item.measurement_date.toString());
-            const survivalRate = tree.map((item => item.survival_rate)); 
+        console.log(tree)
+        if (Array.isArray(tree) && tree.length > 0) {
+            const measurementDate = tree.map((tr) => tr.measurement_date);
+            const survivalRate = tree.map((tr) => tr.survival_rate); 
+            console.log(survivalRate)
 
-            setChartSurvivalOptions ({
+            setChartSurvivalOptions({
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: { type: 'shadow' },
@@ -111,7 +112,7 @@ const Dashboard: React.FC = () => {
                 },
                 xAxis: [{
                     type: 'category',
-                    data: measurementDates,
+                    data: measurementDate,
                     axisTick: { alignWithLabel: true },
                 }],
                 yAxis: [{ type: 'value' }],
@@ -128,9 +129,9 @@ const Dashboard: React.FC = () => {
                     },
                 ]
             });
-        };
-    }, []); 
-
+        }
+    }, [tree]);
+    
     // BREADCRUMB
     const listBreadcrumb = [
         {
@@ -144,7 +145,7 @@ const Dashboard: React.FC = () => {
             setLoading(true)
             await Promise.all([
                 request(`${URL_AREA_INFORMATION}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setCO2Info),
-                request(`${URL_AREA_INFORMATION_TREE}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setTree)
+                request(`${URL_AREA_INFORMATION_TREE}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setTreeInfo)
             ]).finally(() => setLoading(false))
         }else{
             setNotification('Definir Data Inicial e Final!', NotificationEnum.WARNING)
