@@ -59,10 +59,24 @@ const Dashboard: React.FC = () => {
             setChartCO2Options({
                 xAxis: {
                     type: 'category',
-                    data: dates
+                    data: dates,
+                    name: 'Data',
+                    nameLocation: 'middle',
+                    nameGap: 25,
+                    nameTextStyle: {
+                        fontWeight: 'bold',
+                        fontSize: 12
+                    }
                 },
                 yAxis: {
-                    type: 'value'
+                    type: 'value',
+                    name: 'Emissões de CO2 (ton)',
+                    nameLocation: 'middle',
+                    nameGap: 45,
+                    nameTextStyle: {
+                        fontWeight: 'bold',
+                        fontSize: 12
+                    }
                 },
                 series: [
                     {
