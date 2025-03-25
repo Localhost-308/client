@@ -59,7 +59,7 @@ const Header = () => {
         {
           key: 'dashboard_key',
           icon: <DashboardOutlined />,
-          label: 'Aprovações',
+          label: 'Dashboard Geral',
           onClick: () => navigate(DashboardRoutesEnum.DASHBOARD)
         },
         {
