@@ -1,114 +1,47 @@
-import React, { useEffect, useState } from "react";
-import InputDateAntd, { dateAntd } from "../../../shared/components/inputs/inputDateAntd/InputDateAntd";
-
+import React, { useState } from "react";
 import Screen from "../../../shared/components/screen/Screen";
-import Button from "../../../shared/components/buttons/button/Button";
 import FirstScreen from "../../firstScreen";
+import { useCO2Data } from "./charts/useCO2Data";
+import { useExampleChart } from "./charts/useExampleChart";
 import ChartsContainer from "../../../shared/components/charts/ChatsContainer";
-import { LimitedContainer } from "../../../shared/components/styles/limited.styled";
-import { useRequests } from "../../../shared/hooks/useRequests";
-import { URL_AREA_INFORMATION } from "../../../shared/constants/urls";
-import { MethodsEnum } from "../../../shared/enums/methods.enum";
-import { useGlobalReducer } from "../../../store/reducers/globalReducer/useGlobalReducer";
-import { NotificationEnum } from "../../../shared/types/NotificationType";
-import { CO2Type } from "../../../shared/types/Co2Type";
+import InputDateAntd, { dateAntd } from "../../../shared/components/inputs/inputDateAntd/InputDateAntd";
+import Button from "../../../shared/components/buttons/button/Button";
 import { useLoading } from "../../../shared/components/loadingProvider/LoadingProvider";
+import { LimitedContainer } from "../../../shared/components/styles/limited.styled";
+import { useTreeHealth } from "./charts/useTreeHealth";
+import { MethodsEnum } from "../../../shared/enums/methods.enum";
+import { URL_AREA_INFORMATION } from "../../../shared/constants/urls";
+import { useRequests } from "../../../shared/hooks/useRequests";
+import { NotificationEnum } from "../../../shared/types/NotificationType";
+import { useGlobalReducer } from "../../../store/reducers/globalReducer/useGlobalReducer";
+import { CO2Type } from "../../../shared/types/Co2Type";
+import { TreeHealth } from "../../../shared/types/treeHealth";
 
 
 const Dashboard: React.FC = () => {
-    // const navigate = useNavigate();
     const { request } = useRequests();
     const { setNotification } = useGlobalReducer();
     const { isLoading, setLoading } = useLoading();
-    const [ startDate, setStartDate ] = useState<string>('');
-    const [ endDate, setEndDate ] = useState<string>('');
+    
+    // States para os filtros
+    const [startDate, setStartDate] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
+    
+    // States a serem passados para os charts
     const [ co2, setCO2Info ] = useState<CO2Type[]>([]);
+    const [treeHealth, setTreeHealth] = useState<TreeHealth | null>(null);
+    
 
-    // CHARTS
-    const [ allChartsOptions, setAllChartsOptions ] = useState<{options:any;title:string;fraction:number}[]>([]);
-    const [ chartCO2Options, setChartCO2Options ] = useState({});
-    const [ chartExampleOptions, setChartExampleOptions ] = useState({});
+        // Adicionar novos charts aqui
+    const chartCO2Options = useCO2Data(co2);
+    const chartExampleOptions = useExampleChart();
+    const chartTreeHealth = useTreeHealth(treeHealth);
 
-    useEffect(() => {
-        const arrayCharts: any[] = []
-        if (Object.keys(chartCO2Options).length > 0) arrayCharts.push({ options: chartCO2Options, title: "Emissões de CO2", fraction: 1});
-        if (Object.keys(chartExampleOptions).length > 0) arrayCharts.push({ options: chartExampleOptions, title: "Exemplo", fraction: 2});
-        if (arrayCharts.length > 0){
-            setAllChartsOptions([]);
-            arrayCharts.forEach((chart) => {
-                setAllChartsOptions((prevData) => [
-                    ...prevData,
-                    chart
-                ]);
-            })
-        }
-    }, [
-        chartCO2Options, 
-        chartExampleOptions
-    ]);
-
-    // EVENTS
-    useEffect(() => {
-        console.log(co2)
-        if(co2.length > 0) {
-            const orderedCO2 = [...co2].sort(
-                (a,b) => new Date(a.measurement_date).getTime() - new Date(b.measurement_date).getTime()
-            );
-            const dates = orderedCO2.map((oc) => oc.measurement_date);
-            const co2Ordered = orderedCO2.map((oc) => oc.total_avoided_co2)
-            setChartCO2Options({
-                xAxis: {
-                    type: 'category',
-                    data: dates,
-                    name: 'Data',
-                    nameLocation: 'middle',
-                    nameGap: 25,
-                    nameTextStyle: {
-                        fontWeight: 'bold',
-                        fontSize: 12
-                    }
-                },
-                yAxis: {
-                    type: 'value',
-                    name: 'Emissões de CO2 (ton)',
-                    nameLocation: 'middle',
-                    nameGap: 45,
-                    nameTextStyle: {
-                        fontWeight: 'bold',
-                        fontSize: 12
-                    }
-                },
-                series: [
-                    {
-                    data: co2Ordered,
-                    type: 'line',
-                    smooth: true
-                    }
-                ]
-            });
-        }
-
-        setChartExampleOptions({
-            xAxis: {
-              type: 'category',
-              data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-            },
-            yAxis: {
-              type: 'value'
-            },
-            series: [
-              {
-                data: [120, 200, 150, 80, 70, 110, 130],
-                type: 'bar',
-                showBackground: true,
-                backgroundStyle: {
-                  color: 'rgba(180, 180, 180, 0.2)'
-                }
-              }
-            ]
-        });
-
-    },[co2])
+    const allChartsOptions = [
+        { options: chartCO2Options, title: "Emissões de CO2", fraction: 1 },
+        { options: chartTreeHealth, title: "Tree Health", fraction: 1 },
+        { options: chartExampleOptions, title: "Exemplo", fraction: 1 },
+    ];
 
     // BREADCRUMB
     const listBreadcrumb = [
@@ -119,16 +52,25 @@ const Dashboard: React.FC = () => {
     
     // UTILS
     const handleFilter = async () => {
-        if(startDate && endDate){
-            setLoading(true)
-            await Promise.all([
-                request(`${URL_AREA_INFORMATION}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setCO2Info)
-
-            ]).finally(() => setLoading(false))
-        }else{
-            setNotification('Definir Data Inicial e Final!', NotificationEnum.WARNING)
+        if (startDate && endDate) {
+            setLoading(true);
+    
+            try {
+                await Promise.all([
+                    request(`${URL_AREA_INFORMATION}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setCO2Info),
+                    request(`${URL_AREA_INFORMATION}/tree-health`, MethodsEnum.GET, setTreeHealth),
+                ]);
+        
+            } catch (error) {
+                console.error("Erro nas requisições:", error);
+                setNotification('Houve um erro ao carregar as informações!', NotificationEnum.ERROR);
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            setNotification('Definir Data Inicial e Final!', NotificationEnum.WARNING);
         }
-    }
+    };
 
     return(
         <Screen listBreadcrumb={listBreadcrumb}>
@@ -151,8 +93,7 @@ const Dashboard: React.FC = () => {
                 </LimitedContainer>
                 <Button id="filter" text="Filtrar" type="button" onClick={() => handleFilter()}/>
            
-            <ChartsContainer charts={allChartsOptions} />
-            
+            <ChartsContainer charts={allChartsOptions} />  
         </Screen> 
     )
 }
