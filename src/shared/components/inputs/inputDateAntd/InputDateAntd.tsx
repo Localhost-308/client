@@ -17,6 +17,7 @@ interface InputDateAntdProps {
     id:string;
     maxDate: string;
     minDate?: string;
+    placeholder?: string;
 }
 
 export interface dateAntd {
@@ -25,7 +26,7 @@ export interface dateAntd {
   $M: number;
 }
 
-const InputDateAntd = ({ onChange, label, value, margin, id, maxDate, minDate}: InputDateAntdProps) => {
+const InputDateAntd = ({ onChange, label, value, margin, id, maxDate, minDate, placeholder}: InputDateAntdProps) => {
 
   const minDateFormat = dayjs(minDate ? minDate : '01/01/2020', dateFormat);
   const maxDateFormat = maxDate == 'today' ? dayjs().add(0, 'day') : dayjs(maxDate, dateFormat);
@@ -39,6 +40,7 @@ const InputDateAntd = ({ onChange, label, value, margin, id, maxDate, minDate}: 
         onChange={onChange}
         value={value}
         format={dateFormat}
+        placeholder={placeholder}
         name={id} 
         id={id} 
         disabledDate={(current) => current && (current < minDateFormat || current > maxDateFormat)}/>
