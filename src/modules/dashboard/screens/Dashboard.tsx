@@ -39,7 +39,7 @@ const Dashboard: React.FC = () => {
 
     const allChartsOptions = [
         { options: chartCO2Options, title: "Emissões de CO2", fraction: 1 },
-        { options: chartTreeHealth, title: "Tree Health", fraction: 1 },
+        { options: chartTreeHealth, title: "Saúde das árvores", fraction: 1 },
         { options: chartExampleOptions, title: "Exemplo", fraction: 1 },
     ];
 
