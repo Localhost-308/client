@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import InputDateAntd, { dateAntd } from "../../../shared/components/inputs/inputDateAntd/InputDateAntd";
 
@@ -17,6 +16,7 @@ import { CO2Type } from "../../../shared/types/Co2Type";
 import { useLoading } from "../../../shared/components/loadingProvider/LoadingProvider";
 import { AreaInformationTreeType } from "../../../shared/types/AreaInformationTreeType";
 import { AreaListType } from "../../../shared/types/AreaListType";
+import { AreaType } from "../../../shared/types/AreaType";
 import { BoxButtons } from "../../../shared/components/styles/boxButtons.style";
 import { TreeHealth } from "../../../shared/types/treeHealth";
 
@@ -32,13 +32,14 @@ const Dashboard: React.FC = () => {
     
     const [ selectedArea, setSelectedArea ] = useState<string | null>(null);
     const [ areaNames, setAreasNames ] = useState<AreaListType[]>([])
+    const [ reflorested, setAreaInfo ] = useState<AreaType[]>([])
 
     // CHARTS
     const [ allChartsOptions, setAllChartsOptions ] = useState<{options:any;title:string;fraction:number}[]>([]);
     const [ chartCO2Options, setChartCO2Options ] = useState({});
     const [ chartSurvivalOptions, setChartSurvivalOptions ] = useState({});
     const [ treeHealthOptions, setTreeHealthOptions ] = useState({});
-
+    const [ chartReflorestedOptions , setChartReflorestedOptions ] = useState({});
     
     // EVENTS
     useEffect(() => {
@@ -49,6 +50,7 @@ const Dashboard: React.FC = () => {
                 request(`${URL_AREA_INFORMATION_TREE}`, MethodsEnum.GET, setTreeInfo),
                 request(`${URL_AREA}/list`, MethodsEnum.GET, setAreasNames),
                 request(`${URL_AREA_INFORMATION}/tree-health`, MethodsEnum.GET, setTreeHealth),
+                request(`${URL_AREA}/reflorested-area`, MethodsEnum.GET, setAreaInfo),
             ]);
           } catch (error) {
             setNotification(String(error), NotificationEnum.ERROR);
@@ -64,7 +66,7 @@ const Dashboard: React.FC = () => {
         if (Object.keys(chartCO2Options).length > 0) arrayCharts.push({ options: chartCO2Options, title: "Emissões de CO2", fraction: 1});
         if (Object.keys(chartSurvivalOptions).length > 0) arrayCharts.push({ options: chartSurvivalOptions, title: "Taxa de Sobrevivência", fraction: 2});
         if (Object.keys(treeHealthOptions).length > 0) arrayCharts.push({ options: treeHealthOptions, title: "Saúde das árvores", fraction: 1});
-        
+        if (Object.keys(chartReflorestedOptions).length > 0) arrayCharts.push({ options: chartReflorestedOptions, title: "Comparativo: Área Inicial e Recuperada", fraction: 2});
         if (arrayCharts.length > 0){
             setAllChartsOptions([]);
             arrayCharts.forEach((chart) => {
@@ -78,10 +80,11 @@ const Dashboard: React.FC = () => {
     [
         chartCO2Options, 
         chartSurvivalOptions,
-        treeHealthOptions
+        treeHealthOptions,
+        chartReflorestedOptions
     ]);
 
-    useEffect(() => {
+    useEffect(() => { 
         if(co2.length > 0) {
             const orderedCO2 = [...co2].sort(
                 (a,b) => new Date(a.measurement_date).getTime() - new Date(b.measurement_date).getTime()
@@ -187,6 +190,61 @@ const Dashboard: React.FC = () => {
             ]
           });
     }, [treeHealth]);
+  
+  useEffect(() => {
+        if (reflorested.length > 0) {
+            const initialArea = reflorested.map((rf) => rf.initial_planted_area_hectares);
+            const reflorestedArea = reflorested.map((rf) => rf.reflorested_area_hectares);
+
+            setChartReflorestedOptions({
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    top: '10%',
+                    containLabel: true
+                },
+                legend: {
+                    data: ['Area Inicial', 'Area Recuperada'], 
+                },
+                xAxis: [{
+                    show: false,  
+                    type: 'category',
+                    data: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho'], 
+                    axisTick: { alignWithLabel: true },
+                }],
+                yAxis: [{
+                    type: 'value'
+                }],
+                series: [
+                    {
+                        name: 'Área Inicial',
+                        type: 'bar',
+                        stack: 'Nativa', 
+                        barWidth: '50%',
+                        data: initialArea,
+                        itemStyle: {
+                            color: '#03A64A',
+                        },
+                    },
+                    {
+                        name: 'Área Recuperada',
+                        type: 'bar',
+                        stack: 'Nativa', 
+                        barWidth: '50%',
+                        data: reflorestedArea, 
+                        itemStyle: {
+                            color: '#025940', 
+                        },
+                    },
+                ]
+            });
+        }
+    }, [reflorested]);
     
     // BREADCRUMB
     const listBreadcrumb = [
@@ -211,7 +269,8 @@ const Dashboard: React.FC = () => {
     const handleSelectChange = async (areaId: number) => {
         try {
             await Promise.all([
-                request(`${URL_AREA_INFORMATION_TREE}?area_id=${areaId}`, MethodsEnum.GET, setTreeInfo)
+                request(`${URL_AREA_INFORMATION_TREE}?area_id=${areaId}`, MethodsEnum.GET, setTreeInfo),
+                request(`${URL_AREA}/reflorested-area?area_id=${areaId}`, MethodsEnum.GET, setAreaInfo)
             ]);
           } catch (error) {
             setNotification(String(error), NotificationEnum.ERROR);
@@ -246,12 +305,10 @@ const Dashboard: React.FC = () => {
                         options={areaNames.map((a) => ({value: a.id, label: a.area_name}))}
                         placeholder="Selecione uma área"
                     />
-
                 </LimitedContainer>
             </BoxButtons>
             <Button id="filter" text="Filtrar" type="button" onClick={() => handleFilter()}/>
             <ChartsContainer charts={allChartsOptions} />
-
         </Screen> 
     )
 }
