@@ -18,6 +18,7 @@ import { AreaInformationTreeType } from "../../../shared/types/AreaInformationTr
 import { AreaListType } from "../../../shared/types/AreaListType";
 import { AreaType } from "../../../shared/types/AreaType";
 import { BoxButtons } from "../../../shared/components/styles/boxButtons.style";
+import { TreeHealth } from "../../../shared/types/treeHealth";
 
 const Dashboard: React.FC = () => {
     const { request } = useRequests();
@@ -27,6 +28,8 @@ const Dashboard: React.FC = () => {
     const [ endDate, setEndDate ] = useState<string>('');
     const [ co2, setCO2Info ] = useState<CO2Type[]>([]);
     const [ tree, setTreeInfo ] = useState<AreaInformationTreeType[]>([]);
+    const [ treeHealth, setTreeHealth ] = useState<TreeHealth | null>(null);
+    
     const [ selectedArea, setSelectedArea ] = useState<string | null>(null);
     const [ areaNames, setAreasNames ] = useState<AreaListType[]>([])
     const [ reflorested, setAreaInfo ] = useState<AreaType[]>([])
@@ -35,6 +38,7 @@ const Dashboard: React.FC = () => {
     const [ allChartsOptions, setAllChartsOptions ] = useState<{options:any;title:string;fraction:number}[]>([]);
     const [ chartCO2Options, setChartCO2Options ] = useState({});
     const [ chartSurvivalOptions, setChartSurvivalOptions ] = useState({});
+    const [ treeHealthOptions, setTreeHealthOptions ] = useState({});
     const [ chartReflorestedOptions , setChartReflorestedOptions ] = useState({});
     
     // EVENTS
@@ -45,6 +49,7 @@ const Dashboard: React.FC = () => {
             await Promise.all([
                 request(`${URL_AREA_INFORMATION_TREE}`, MethodsEnum.GET, setTreeInfo),
                 request(`${URL_AREA}/list`, MethodsEnum.GET, setAreasNames),
+                request(`${URL_AREA_INFORMATION}/tree-health`, MethodsEnum.GET, setTreeHealth),
                 request(`${URL_AREA}/reflorested-area`, MethodsEnum.GET, setAreaInfo),
             ]);
           } catch (error) {
@@ -60,6 +65,7 @@ const Dashboard: React.FC = () => {
         const arrayCharts: any[] = []
         if (Object.keys(chartCO2Options).length > 0) arrayCharts.push({ options: chartCO2Options, title: "Emissões de CO2", fraction: 1});
         if (Object.keys(chartSurvivalOptions).length > 0) arrayCharts.push({ options: chartSurvivalOptions, title: "Taxa de Sobrevivência", fraction: 2});
+        if (Object.keys(treeHealthOptions).length > 0) arrayCharts.push({ options: treeHealthOptions, title: "Saúde das árvores", fraction: 1});
         if (Object.keys(chartReflorestedOptions).length > 0) arrayCharts.push({ options: chartReflorestedOptions, title: "Comparativo: Área Inicial e Recuperada", fraction: 2});
         if (arrayCharts.length > 0){
             setAllChartsOptions([]);
@@ -74,6 +80,7 @@ const Dashboard: React.FC = () => {
     [
         chartCO2Options, 
         chartSurvivalOptions,
+        treeHealthOptions,
         chartReflorestedOptions
     ]);
 
@@ -159,6 +166,32 @@ const Dashboard: React.FC = () => {
     }, [tree]);
 
     useEffect(() => {
+        if (!treeHealth) return;
+        const comPragas: any[] = []
+        const morrendo: any[] = []
+        const saudaveis: any[] = []
+        
+  
+        for (const [technic, healtValues] of Object.entries(treeHealth)) {
+            comPragas.push(technic, healtValues.comPragas);
+            morrendo.push(technic, healtValues.morrendo);
+            saudaveis.push(technic, healtValues.saudaveis);
+        }
+
+        setTreeHealthOptions({
+            legend: {},
+            tooltip: {},
+            xAxis: { type: 'category' },
+            yAxis: { type: 'value'},
+            series: [
+                { type: 'bar', name: 'Com Pragas', data: comPragas },
+                { type: 'bar', name: 'Morrendo', data: morrendo },
+                { type: 'bar', name: 'Saudáveis', data: saudaveis }
+            ]
+          });
+    }, [treeHealth]);
+  
+  useEffect(() => {
         if (reflorested.length > 0) {
             const initialArea = reflorested.map((rf) => rf.initial_planted_area_hectares);
             const reflorestedArea = reflorested.map((rf) => rf.reflorested_area_hectares);

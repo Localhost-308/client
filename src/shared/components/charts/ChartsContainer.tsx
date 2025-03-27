@@ -15,8 +15,8 @@ interface ChartsContainerProps {
 const ChartsContainer: React.FC<ChartsContainerProps> = ({ charts }) => {
   return (
     <div className="charts-container">
-      {charts.map((chart, index) => (
-        <div key={index}
+      {charts.map((chart) => (
+        <div key={chart.title}
           className="chart-card"
           style={{ gridColumn: `span ${chart.fraction}` }}>
           <h3>{chart.title}</h3>
