@@ -19,6 +19,7 @@ import { AreaListType } from "../../../shared/types/AreaListType";
 import { AreaType } from "../../../shared/types/AreaType";
 import { BoxButtons } from "../../../shared/components/styles/boxButtons.style";
 import { TreeHealth } from "../../../shared/types/treeHealth";
+import { SurvivalRateBySoil } from "../../../shared/types/SurvivalRateBySoil";
 
 const Dashboard: React.FC = () => {
     const { request } = useRequests();
@@ -28,6 +29,7 @@ const Dashboard: React.FC = () => {
     const [ endDate, setEndDate ] = useState<string>('');
     const [ co2, setCO2Info ] = useState<CO2Type[]>([]);
     const [ tree, setTreeInfo ] = useState<AreaInformationTreeType[]>([]);
+    const [ survivalBySoil, setSurvivalBySoil] = useState<SurvivalRateBySoil>([])
     const [ treeHealth, setTreeHealth ] = useState<TreeHealth | null>(null);
     
     const [ selectedArea, setSelectedArea ] = useState<string | null>(null);
@@ -38,6 +40,7 @@ const Dashboard: React.FC = () => {
     const [ allChartsOptions, setAllChartsOptions ] = useState<{options:any;title:string;fraction:number}[]>([]);
     const [ chartCO2Options, setChartCO2Options ] = useState({});
     const [ chartSurvivalOptions, setChartSurvivalOptions ] = useState({});
+    const [ chartSurvivalBySoilOptions, setChartSurvivalBySoilOptions ] = useState({});
     const [ treeHealthOptions, setTreeHealthOptions ] = useState({});
     const [ chartReflorestedOptions , setChartReflorestedOptions ] = useState({});
     
@@ -49,6 +52,7 @@ const Dashboard: React.FC = () => {
             await Promise.all([
                 request(`${URL_AREA_INFORMATION_TREE}`, MethodsEnum.GET, setTreeInfo),
                 request(`${URL_AREA}/list`, MethodsEnum.GET, setAreasNames),
+                request(`${URL_AREA_INFORMATION}/average-tree-survival`, MethodsEnum.GET, setSurvivalBySoil),
                 request(`${URL_AREA_INFORMATION}/tree-health`, MethodsEnum.GET, setTreeHealth),
                 request(`${URL_AREA}/reflorested-area`, MethodsEnum.GET, setAreaInfo),
             ]);
@@ -65,6 +69,7 @@ const Dashboard: React.FC = () => {
         const arrayCharts: any[] = []
         if (Object.keys(chartCO2Options).length > 0) arrayCharts.push({ options: chartCO2Options, title: "Emissões de CO2", fraction: 1});
         if (Object.keys(chartSurvivalOptions).length > 0) arrayCharts.push({ options: chartSurvivalOptions, title: "Taxa de Sobrevivência", fraction: 2});
+        if (Object.keys(chartSurvivalBySoilOptions).length > 0) arrayCharts.push({ options: chartSurvivalBySoilOptions, title: "Taxa de Sobrevivência por Solo", fraction: 1});
         if (Object.keys(treeHealthOptions).length > 0) arrayCharts.push({ options: treeHealthOptions, title: "Saúde das árvores", fraction: 1});
         if (Object.keys(chartReflorestedOptions).length > 0) arrayCharts.push({ options: chartReflorestedOptions, title: "Comparativo: Área Inicial e Recuperada", fraction: 2});
         if (arrayCharts.length > 0){
@@ -80,6 +85,7 @@ const Dashboard: React.FC = () => {
     [
         chartCO2Options, 
         chartSurvivalOptions,
+        chartSurvivalBySoilOptions,
         treeHealthOptions,
         chartReflorestedOptions
     ]);
@@ -164,6 +170,28 @@ const Dashboard: React.FC = () => {
             });
         }
     }, [tree]);
+
+
+    useEffect(() => { 
+        const soilNames: string[] = Object.keys(survivalBySoil).map(name => name.toUpperCase());
+        const soilRates: number[] = Object.values(survivalBySoil).map(value => value | 0);
+
+        setChartSurvivalBySoilOptions({
+            xAxis: {
+              type: 'category',
+              data: soilNames
+            },
+            yAxis: {
+              type: 'value'
+            },
+            series: [
+              {
+                data: soilRates,
+                type: 'bar'
+              }
+            ]
+          });
+    }, [survivalBySoil]);
 
     useEffect(() => {
         if (!treeHealth) return;
