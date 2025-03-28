@@ -253,14 +253,23 @@ const Dashboard: React.FC = () => {
 
     useEffect(() => { 
         if (soil.length > 0) {
-            const measurementDate = soil.map((so) => so.measurement_date);
-            const soilFertility = soil.map((so) => so.avg_soil_fertility_index_percent);
-            const fertilizations = soil.map((so) => so.fertilization); 
+            const measurementDates = Array.from(new Set(soil.map((so) => so.measurement_date)));
+            const fertilizations = Array.from(new Set(soil.map((so) => so.fertilization)));
+            const groupedData = measurementDates.map((date) => {
+                return fertilizations.map((fertilization) => {
+                    const soilEntry = soil.find((so) => so.measurement_date === date && so.fertilization === fertilization);
+                    return soilEntry ? soilEntry.avg_soil_fertility_index_percent : 0; 
+                });
+            });
     
             setChartSoilOptions({
                 tooltip: {
-                    trigger: 'axis',
+                    trigger: 'item', 
                     axisPointer: { type: 'shadow' },
+                    formatter: function (params: { name: any; value: any; seriesName: any; }) {
+                        const { name, value, seriesName } = params;
+                        return `${seriesName}: <br> Data: ${name} <br> Fertilidade: ${value}%`;
+                    },
                 },
                 grid: {
                     left: '3%',
@@ -271,7 +280,7 @@ const Dashboard: React.FC = () => {
                 },
                 xAxis: [{
                     type: 'category',
-                    data: measurementDate,
+                    data: measurementDates, 
                     axisTick: { alignWithLabel: true },
                 }],
                 yAxis: [{ type: 'value' }],
@@ -280,11 +289,11 @@ const Dashboard: React.FC = () => {
                     top: '5%',
                     left: 'center',
                 },
-                series: fertilizations.map((fertilization) => ({
+                series: fertilizations.map((fertilization, index) => ({
                     name: fertilization,  
                     type: 'bar',
                     barWidth: '40%',
-                    data: soilFertility,  
+                    data: groupedData.map((group) => group[index]),  
                     itemStyle: {
                         color: '#025940',
                         borderRadius: [8, 8, 0, 0]
