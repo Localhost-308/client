@@ -30,7 +30,6 @@ import { GridContainerVertical } from "../../../shared/components/styles/gridCon
 const Dashboard: React.FC = () => {
     const { request } = useRequests();
     const { setNotification } = useGlobalReducer();
-
     const { isLoading, setLoading } = useLoading();
 
     const [chartReforestedByUfType, setReforestedByUfType] = useState<'soil_type' | 'planting_techniques'>('soil_type');
@@ -78,7 +77,6 @@ const Dashboard: React.FC = () => {
                     request(`${URL_AREA_INFORMATION}/reforested-area-summary`, MethodsEnum.GET, setReforestedByUf),
                     request(`${URL_AREA_INFORMATION}/soil`, MethodsEnum.GET, setSoilInfo),
                     request(`${URL_AREA_INFORMATION}/funding_by_uf_year`, MethodsEnum.GET, setFundings),
-
                 ]);
             } catch (error) {
                 setNotification(String(error), NotificationEnum.ERROR);
@@ -227,7 +225,7 @@ const Dashboard: React.FC = () => {
         const comPragas: any[] = []
         const morrendo: any[] = []
         const saudaveis: any[] = []
-        
+
         for (const [technic, healtValues] of Object.entries(treeHealth)) {
             comPragas.push(technic, healtValues.comPragas);
             morrendo.push(technic, healtValues.morrendo);
@@ -515,35 +513,35 @@ const Dashboard: React.FC = () => {
         <Screen listBreadcrumb={listBreadcrumb}>
             {isLoading && <FirstScreen />}
             <BoxButtons>
-                    <RangePicker format="DD/MM/YYYY" onChange={(event) => handleDefineDatesFilter(event)} style={{margin: '0 1em 0 0'}}/>
-                    <Select value={selectedArea}
-                        onChange={(event) => handleSelectChange(event)}
-                        style={{ width: 200, margin: '1em' }}
-                        options={areaNames.map((a) => ({ value: a.id, label: a.area_name }))}
-                        placeholder="Selecione uma área"/>
+                <RangePicker format="DD/MM/YYYY" onChange={(event) => handleDefineDatesFilter(event)} style={{margin: '0 1em 0 0'}}/>
+                <Select value={selectedArea}
+                    onChange={(event) => handleSelectChange(event)}
+                    style={{ width: 200, margin: '1em' }}
+                    options={areaNames.map((a) => ({ value: a.id, label: a.area_name }))}
+                    placeholder="Selecione uma área"/>
             </BoxButtons>
             <GridContainerVertical>
-                    <MarginTitle>
-                        Funding Resources Chart
-                    </MarginTitle>
+                <MarginTitle>
+                    Funding Resources Chart
+                </MarginTitle>
 
-                    <Select 
-                        value={selectedUf}
-                        onChange={(uf) => setSelectedUf(uf)}
-                        style={{ width: 200, margin: '1em' }}
-                        options={brazilStates.map((uf) => ({value: uf.value, label: uf.label}))}
-                        placeholder="State"
-                        />
-                    <Select 
-                        value={selectedYear}
-                        onChange={(year) => setSelectedYear(year)}
-                        style={{ width: 200, margin: '1em' }}
-                        options={Array.from({ length: 2025 - 2020 + 1 }, (_, i) => {
-                            const year = 2020 + i;
-                            return { value: year, label: year.toString() };
-                        })}
-                        placeholder="ANO"
-                        />
+                <Select 
+                    value={selectedUf}
+                    onChange={(uf) => setSelectedUf(uf)}
+                    style={{ width: 200, margin: '1em' }}
+                    options={brazilStates.map((uf) => ({value: uf.value, label: uf.label}))}
+                    placeholder="State"
+                    />
+                <Select 
+                    value={selectedYear}
+                    onChange={(year) => setSelectedYear(year)}
+                    style={{ width: 200, margin: '1em' }}
+                    options={Array.from({ length: 2025 - 2020 + 1 }, (_, i) => {
+                        const year = 2020 + i;
+                        return { value: year, label: year.toString() };
+                    })}
+                    placeholder="ANO"
+                    />
             </GridContainerVertical>
             <Button id="filter" text="Aplicar Filtros" type="button" onClick={() => handleFilter()} />
             
