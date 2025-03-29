@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import InputDateAntd, { dateAntd } from "../../../shared/components/inputs/inputDateAntd/InputDateAntd";
+import { ConfigProvider, DatePicker } from "antd";
+import ptBR from 'antd/es/locale/pt_BR';
+import "dayjs/locale/pt-br";
 
 import Screen from "../../../shared/components/screen/Screen";
 import Button from "../../../shared/components/buttons/button/Button";
 import FirstScreen from "../../firstScreen";
 import ChartsContainer from "../../../shared/components/charts/ChartsContainer";
 import Select from "../../../shared/components/inputs/select/Select";
-import { LimitedContainer } from "../../../shared/components/styles/limited.styled";
 import { useRequests } from "../../../shared/hooks/useRequests";
 import { URL_AREA_INFORMATION, URL_AREA_INFORMATION_TREE, URL_AREA } from "../../../shared/constants/urls";
 import { MethodsEnum } from "../../../shared/enums/methods.enum";
@@ -28,65 +29,67 @@ const Dashboard: React.FC = () => {
     const { request } = useRequests();
     const { setNotification } = useGlobalReducer();
     const { isLoading, setLoading } = useLoading();
-    
+
     const [chartReforestedByUfType, setReforestedByUfType] = useState<'soil_type' | 'planting_techniques'>('soil_type');
 
-    const [ startDate, setStartDate ] = useState<string>('');
-    const [ endDate, setEndDate ] = useState<string>('');
-    const [ co2, setCO2Info ] = useState<CO2Type[]>([]);
-    const [ tree, setTreeInfo ] = useState<AreaInformationTreeType[]>([]);
-    const [ survivalBySoil, setSurvivalBySoil] = useState<SurvivalRateBySoil>([])
-    const [ treeHealth, setTreeHealth ] = useState<TreeHealth | null>(null);
-    const [ soil, setSoilInfo ] = useState<SoilType[]>([]);
-    
-    const [ selectedArea, setSelectedArea ] = useState<string | null>(null);
-    const [ areaNames, setAreasNames ] = useState<AreaListType[]>([])
-    const [ reflorested, setAreaInfo ] = useState<AreaType[]>([])
-    const [ reforestedByUf, setReforestedByUf ] = useState<any>([])
+    const [startDate, setStartDate] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
+    const [co2, setCO2Info] = useState<CO2Type[]>([]);
+    const [tree, setTreeInfo] = useState<AreaInformationTreeType[]>([]);
+    const [survivalBySoil, setSurvivalBySoil] = useState<SurvivalRateBySoil[]>([]);
+    const [treeHealth, setTreeHealth] = useState<TreeHealth | null>(null);
+    const [soil, setSoilInfo] = useState<SoilType[]>([]);
+
+    const [selectedArea, setSelectedArea] = useState<string | null>(null);
+    const [areaNames, setAreasNames] = useState<AreaListType[]>([]);
+    const [reflorested, setAreaInfo] = useState<AreaType[]>([]);
+    const [reforestedByUf, setReforestedByUf] = useState<any>([]);
+
+    const { RangePicker } = DatePicker;
 
     // CHARTS
-    const [ allChartsOptions, setAllChartsOptions ] = useState<{options:any;title:string;fraction:number}[]>([]);
-    const [ chartCO2Options, setChartCO2Options ] = useState({});
-    const [ chartSurvivalOptions, setChartSurvivalOptions ] = useState({});
-    const [ chartSurvivalBySoilOptions, setChartSurvivalBySoilOptions ] = useState({});
-    const [ treeHealthOptions, setTreeHealthOptions ] = useState({});
-    const [ chartReflorestedOptions , setChartReflorestedOptions ] = useState({});
-    const [ chartReforestedByUfOptions , setChartReforestedByUfOptions ] = useState({});
-    const [ chartSoilOptions , setChartSoilOptions ] = useState({});
-    
+    const [allChartsOptions, setAllChartsOptions] = useState<{ options: any; title: string; fraction: number }[]>([]);
+    const [chartCO2Options, setChartCO2Options] = useState({});
+    const [chartSurvivalOptions, setChartSurvivalOptions] = useState({});
+    const [chartSurvivalBySoilOptions, setChartSurvivalBySoilOptions] = useState({});
+    const [treeHealthOptions, setTreeHealthOptions] = useState({});
+    const [chartReflorestedOptions, setChartReflorestedOptions] = useState({});
+    const [chartReforestedByUfOptions, setChartReforestedByUfOptions] = useState({});
+    const [chartSoilOptions, setChartSoilOptions] = useState({});
+
     // EVENTS
     useEffect(() => {
         const fetchData = async () => {
-          setLoading(true);
-          try {
-            await Promise.all([
-                request(`${URL_AREA_INFORMATION_TREE}`, MethodsEnum.GET, setTreeInfo),
-                request(`${URL_AREA}/list`, MethodsEnum.GET, setAreasNames),
-                request(`${URL_AREA_INFORMATION}/average-tree-survival`, MethodsEnum.GET, setSurvivalBySoil),
-                request(`${URL_AREA_INFORMATION}/tree-health`, MethodsEnum.GET, setTreeHealth),
-                request(`${URL_AREA}/reflorested-area`, MethodsEnum.GET, setAreaInfo),
-                request(`${URL_AREA_INFORMATION}/reforested-area-summary`, MethodsEnum.GET, setReforestedByUf),
-                request(`${URL_AREA_INFORMATION}/soil`, MethodsEnum.GET, setSoilInfo),
-            ]);
-          } catch (error) {
-            setNotification(String(error), NotificationEnum.ERROR);
-          } finally {
-            setLoading(false);
-          }
+            setLoading(true);
+            try {
+                await Promise.all([
+                    request(`${URL_AREA_INFORMATION_TREE}`, MethodsEnum.GET, setTreeInfo),
+                    request(`${URL_AREA}/list`, MethodsEnum.GET, setAreasNames),
+                    request(`${URL_AREA_INFORMATION}/average-tree-survival`, MethodsEnum.GET, setSurvivalBySoil),
+                    request(`${URL_AREA_INFORMATION}/tree-health`, MethodsEnum.GET, setTreeHealth),
+                    request(`${URL_AREA}/reflorested-area`, MethodsEnum.GET, setAreaInfo),
+                    request(`${URL_AREA_INFORMATION}/reforested-area-summary`, MethodsEnum.GET, setReforestedByUf),
+                    request(`${URL_AREA_INFORMATION}/soil`, MethodsEnum.GET, setSoilInfo),
+                ]);
+            } catch (error) {
+                setNotification(String(error), NotificationEnum.ERROR);
+            } finally {
+                setLoading(false);
+            }
         };
         fetchData();
     }, []);
 
     useEffect(() => {
         const arrayCharts: any[] = []
-        if (Object.keys(chartCO2Options).length > 0) arrayCharts.push({ options: chartCO2Options, title: "Emissões de CO2", fraction: 1});
-        if (Object.keys(chartSurvivalOptions).length > 0) arrayCharts.push({ options: chartSurvivalOptions, title: "Taxa de Sobrevivência", fraction: 2});
-        if (Object.keys(chartSurvivalBySoilOptions).length > 0) arrayCharts.push({ options: chartSurvivalBySoilOptions, title: "Taxa de Sobrevivência por Solo", fraction: 1});
-        if (Object.keys(treeHealthOptions).length > 0) arrayCharts.push({ options: treeHealthOptions, title: "Saúde das árvores", fraction: 1});
-        if (Object.keys(chartReflorestedOptions).length > 0) arrayCharts.push({ options: chartReflorestedOptions, title: "Comparativo: Área Inicial e Recuperada", fraction: 2});
-        if (Object.keys(chartReforestedByUfOptions).length > 0) arrayCharts.push({ options: chartReforestedByUfOptions, title: "Área Reflorestada - Tipo de solo/Técnica de plantio", fraction: 1});
-        if (Object.keys(chartSoilOptions).length > 0) arrayCharts.push({ options: chartSoilOptions, title: "Índice de Fertilidade do Solo", fraction: 2});
-        if (arrayCharts.length > 0){
+        if (Object.keys(chartCO2Options).length > 0) arrayCharts.push({ options: chartCO2Options, title: "Emissões de CO2", fraction: 1 });
+        if (Object.keys(chartSurvivalOptions).length > 0) arrayCharts.push({ options: chartSurvivalOptions, title: "Taxa de Sobrevivência", fraction: 2 });
+        if (Object.keys(chartSurvivalBySoilOptions).length > 0) arrayCharts.push({ options: chartSurvivalBySoilOptions, title: "Taxa de Sobrevivência por Solo", fraction: 1 });
+        if (Object.keys(treeHealthOptions).length > 0) arrayCharts.push({ options: treeHealthOptions, title: "Saúde das árvores", fraction: 1 });
+        if (Object.keys(chartReflorestedOptions).length > 0) arrayCharts.push({ options: chartReflorestedOptions, title: "Comparativo: Área Inicial e Recuperada", fraction: 2 });
+        if (Object.keys(chartReforestedByUfOptions).length > 0) arrayCharts.push({ options: chartReforestedByUfOptions, title: "Área Reflorestada - Tipo de solo/Técnica de plantio", fraction: 1 });
+        if (Object.keys(chartSoilOptions).length > 0) arrayCharts.push({ options: chartSoilOptions, title: "Índice de Fertilidade do Solo", fraction: 2 });
+        if (arrayCharts.length > 0) {
             setAllChartsOptions([]);
             arrayCharts.forEach((chart) => {
                 setAllChartsOptions((prevData) => [
@@ -95,20 +98,20 @@ const Dashboard: React.FC = () => {
                 ]);
             })
         }
-    }, 
-    [
-        chartCO2Options, 
-        chartSurvivalOptions,
-        chartSurvivalBySoilOptions,
-        treeHealthOptions,
-        chartReflorestedOptions,
-        chartReforestedByUfOptions
-    ]);
+    },
+        [
+            chartCO2Options,
+            chartSurvivalOptions,
+            chartSurvivalBySoilOptions,
+            treeHealthOptions,
+            chartReflorestedOptions,
+            chartReforestedByUfOptions
+        ]);
 
-    useEffect(() => { 
-        if(co2.length > 0) {
+    useEffect(() => {
+        if (co2.length > 0) {
             const orderedCO2 = [...co2].sort(
-                (a,b) => new Date(a.measurement_date).getTime() - new Date(b.measurement_date).getTime()
+                (a, b) => new Date(a.measurement_date).getTime() - new Date(b.measurement_date).getTime()
             );
             const dates = orderedCO2.map((oc) => oc.measurement_date);
             const co2Ordered = orderedCO2.map((oc) => oc.total_avoided_co2)
@@ -136,21 +139,21 @@ const Dashboard: React.FC = () => {
                 },
                 series: [
                     {
-                    data: co2Ordered,
-                    type: 'line',
-                    smooth: true
+                        data: co2Ordered,
+                        type: 'line',
+                        smooth: true
                     }
                 ]
             });
         };
     }, [co2]);
 
-    useEffect(() => { 
+    useEffect(() => {
         if (Array.isArray(tree) && tree.length > 0) {
             const measurementDate = tree.map((tr) => tr.measurement_date);
             const survivalRate = tree.map((tr) => {
-                return Math.round(tr.survival_rate * 100); 
-            }); 
+                return Math.round(tr.survival_rate * 100);
+            });
 
             setChartSurvivalOptions({
                 tooltip: {
@@ -175,7 +178,7 @@ const Dashboard: React.FC = () => {
                         name: 'Sobrevivência',
                         type: 'bar',
                         barWidth: '40%',
-                        data: survivalRate, 
+                        data: survivalRate,
                         itemStyle: {
                             color: '#007BFF',
                             borderRadius: [8, 8, 0, 0]
@@ -186,26 +189,25 @@ const Dashboard: React.FC = () => {
         }
     }, [tree]);
 
-
-    useEffect(() => { 
+    useEffect(() => {
         const soilNames: string[] = Object.keys(survivalBySoil).map(name => name.toUpperCase());
-        const soilRates: number[] = Object.values(survivalBySoil).map(value => value | 0);
+        const soilRates: number[] = Object.values(survivalBySoil).map((value: any) => value | 0);
 
         setChartSurvivalBySoilOptions({
             xAxis: {
-              type: 'category',
-              data: soilNames
+                type: 'category',
+                data: soilNames
             },
             yAxis: {
-              type: 'value'
+                type: 'value'
             },
             series: [
-              {
-                data: soilRates,
-                type: 'bar'
-              }
+                {
+                    data: soilRates,
+                    type: 'bar'
+                }
             ]
-          });
+        });
     }, [survivalBySoil]);
 
     useEffect(() => {
@@ -213,8 +215,8 @@ const Dashboard: React.FC = () => {
         const comPragas: any[] = []
         const morrendo: any[] = []
         const saudaveis: any[] = []
-        
-  
+
+
         for (const [technic, healtValues] of Object.entries(treeHealth)) {
             comPragas.push(technic, healtValues.comPragas);
             morrendo.push(technic, healtValues.morrendo);
@@ -225,16 +227,16 @@ const Dashboard: React.FC = () => {
             legend: {},
             tooltip: {},
             xAxis: { type: 'category' },
-            yAxis: { type: 'value'},
+            yAxis: { type: 'value' },
             series: [
                 { type: 'bar', name: 'Com Pragas', data: comPragas },
                 { type: 'bar', name: 'Morrendo', data: morrendo },
                 { type: 'bar', name: 'Saudáveis', data: saudaveis }
             ]
-          });
+        });
     }, [treeHealth]);
-  
-  useEffect(() => {
+
+    useEffect(() => {
         if (reflorested.length > 0) {
             const initialArea = reflorested.map((rf) => rf.initial_planted_area_hectares);
             const reflorestedArea = reflorested.map((rf) => rf.reflorested_area_hectares);
@@ -252,12 +254,12 @@ const Dashboard: React.FC = () => {
                     containLabel: true
                 },
                 legend: {
-                    data: ['Area Inicial', 'Area Recuperada'], 
+                    data: ['Area Inicial', 'Area Recuperada'],
                 },
                 xAxis: [{
-                    show: false,  
+                    show: false,
                     type: 'category',
-                    data: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho'], 
+                    data: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho'],
                     axisTick: { alignWithLabel: true },
                 }],
                 yAxis: [{
@@ -267,7 +269,7 @@ const Dashboard: React.FC = () => {
                     {
                         name: 'Área Inicial',
                         type: 'bar',
-                        stack: 'Nativa', 
+                        stack: 'Nativa',
                         barWidth: '50%',
                         data: initialArea,
                         itemStyle: {
@@ -277,11 +279,11 @@ const Dashboard: React.FC = () => {
                     {
                         name: 'Área Recuperada',
                         type: 'bar',
-                        stack: 'Nativa', 
+                        stack: 'Nativa',
                         barWidth: '50%',
-                        data: reflorestedArea, 
+                        data: reflorestedArea,
                         itemStyle: {
-                            color: '#025940', 
+                            color: '#025940',
                         },
                     },
                 ]
@@ -291,17 +293,17 @@ const Dashboard: React.FC = () => {
 
     useEffect(() => {
         if (!reforestedByUf) return;
-    
+
         const summary: any[] = Object.values(reforestedByUf).sort(
             (a: any, b: any) => a[chartReforestedByUfType].total - b[chartReforestedByUfType].total
         );
-    
+
         const ufs: string[] = Object.keys(reforestedByUf);
         let categoryNames = summary.map((uf) => Object.keys(uf[chartReforestedByUfType])).flat();
         categoryNames = [...new Set(categoryNames)].filter(name => name !== "total");
-    
+
         const seriesData: Serie[] = [];
-    
+
         categoryNames.forEach(categoryName => {
             seriesData.push({
                 name: categoryName.toUpperCase(),
@@ -312,7 +314,7 @@ const Dashboard: React.FC = () => {
                 data: summary.map((uf: any) => uf[chartReforestedByUfType][categoryName] || 0)
             });
         });
-    
+
         setChartReforestedByUfOptions({
             tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
             legend: {},
@@ -355,21 +357,20 @@ const Dashboard: React.FC = () => {
         });
     }, [reforestedByUf, chartReforestedByUfType]);
 
-    
-    useEffect(() => { 
+    useEffect(() => {
         if (soil.length > 0) {
             const measurementDates = Array.from(new Set(soil.map((so) => so.measurement_date)));
             const fertilizations = Array.from(new Set(soil.map((so) => so.fertilization)));
             const groupedData = measurementDates.map((date) => {
                 return fertilizations.map((fertilization) => {
                     const soilEntry = soil.find((so) => so.measurement_date === date && so.fertilization === fertilization);
-                    return soilEntry ? soilEntry.avg_soil_fertility_index_percent : 0; 
+                    return soilEntry ? soilEntry.avg_soil_fertility_index_percent : 0;
                 });
             });
-    
+
             setChartSoilOptions({
                 tooltip: {
-                    trigger: 'item', 
+                    trigger: 'item',
                     axisPointer: { type: 'shadow' },
                     formatter: function (params: { name: any; value: any; seriesName: any; }) {
                         const { name, value, seriesName } = params;
@@ -385,20 +386,20 @@ const Dashboard: React.FC = () => {
                 },
                 xAxis: [{
                     type: 'category',
-                    data: measurementDates, 
+                    data: measurementDates,
                     axisTick: { alignWithLabel: true },
                 }],
                 yAxis: [{ type: 'value' }],
                 legend: {
-                    data: fertilizations,  
+                    data: fertilizations,
                     top: '5%',
                     left: 'center',
                 },
                 series: fertilizations.map((fertilization, index) => ({
-                    name: fertilization,  
+                    name: fertilization,
                     type: 'bar',
                     barWidth: '40%',
-                    data: groupedData.map((group) => group[index]),  
+                    data: groupedData.map((group) => group[index]),
                     itemStyle: {
                         color: '#025940',
                         borderRadius: [8, 8, 0, 0]
@@ -407,25 +408,25 @@ const Dashboard: React.FC = () => {
             });
         }
     }, [soil]);
-                                  
-    
+
+
     // BREADCRUMB
     const listBreadcrumb = [
         {
             name: 'Dashboard'
         }
     ]
-    
+
     // UTILS
     const handleFilter = async () => {
-        if(startDate && endDate){
+        if (startDate && endDate) {
             setLoading(true)
             await Promise.all([
                 request(`${URL_AREA_INFORMATION}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setCO2Info),
                 request(`${URL_AREA_INFORMATION_TREE}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setTreeInfo),
                 request(`${URL_AREA_INFORMATION}/soil?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setSoilInfo),
             ]).finally(() => setLoading(false))
-        }else{
+        } else {
             setNotification('Definir Data Inicial e Final!', NotificationEnum.WARNING)
         }
     }
@@ -437,44 +438,36 @@ const Dashboard: React.FC = () => {
                 request(`${URL_AREA}/reflorested-area?area_id=${areaId}`, MethodsEnum.GET, setAreaInfo),
                 request(`${URL_AREA_INFORMATION}/soil-area?area_id=${areaId}`, MethodsEnum.GET, setSoilInfo)
             ]);
-          } catch (error) {
+        } catch (error) {
             setNotification(String(error), NotificationEnum.ERROR);
-          } finally {
+        } finally {
             setLoading(false);
-          }
+        }
     }
 
-    return(
+    const handleDefineDatesFilter = (event: any) => {
+        let currentStartDate: string = `${event[0].$y}-${event[0].$M + 1}-${event[0].$D}`;
+        let currentEndDate: string = `${event[1].$y}-${event[1].$M + 1}-${event[1].$D}`;
+        setStartDate(currentStartDate);
+        setEndDate(currentEndDate);
+    }
+
+    return (
         <Screen listBreadcrumb={listBreadcrumb}>
-            {isLoading && <FirstScreen/>} 
+            {isLoading && <FirstScreen />}
             <BoxButtons>
-                <LimitedContainer width={350}>
-                    <InputDateAntd onChange={(event: dateAntd) => {setStartDate(`${event.$y}-${event.$M + 1}-${event.$D}`)}}
-                        maxDate="31/12/2025"
-                        margin="0px 0px 15px 0px" 
-                        placeholder="Data inicial"
-                        id="start_date" />
-                </LimitedContainer>
-                <LimitedContainer width={350}>
-                    <InputDateAntd onChange={(event: dateAntd) => {setEndDate(`${event.$y}-${event.$M + 1}-${event.$D}`)}}
-                        maxDate="01/01/2040"
-                        margin="0px 0px 15px 0px" 
-                        placeholder="Data final"
-                        id="end_date" />
-                </LimitedContainer>
-                <LimitedContainer width={350}>
-                    <Select 
-                        value={selectedArea}
-                        onChange={(event) => handleSelectChange(event)}
-                        style={{ width: 200, margin: '1em' }}
-                        options={areaNames.map((a) => ({value: a.id, label: a.area_name}))}
-                        placeholder="Selecione uma área"
-                    />
-                </LimitedContainer>
+                <RangePicker format="DD/MM/YYYY" onChange={(event) => handleDefineDatesFilter(event)} style={{margin: '0 1em 0 0'}}/>
+                <Select value={selectedArea}
+                    onChange={(event) => handleSelectChange(event)}
+                    style={{ width: 200, margin: '1em' }}
+                    options={areaNames.map((a) => ({ value: a.id, label: a.area_name }))}
+                    placeholder="Selecione uma área"/>
             </BoxButtons>
-            <Button id="filter" text="Filtrar" type="button" onClick={() => handleFilter()}/>
-            <ChartsContainer charts={allChartsOptions} />
-        </Screen> 
+            <Button id="filter" text="Aplicar Filtros" type="button" onClick={() => handleFilter()} />
+            
+            {allChartsOptions.length > 0 && <ChartsContainer charts={allChartsOptions} />}
+            
+        </Screen>
     )
 }
 

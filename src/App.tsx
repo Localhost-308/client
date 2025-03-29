@@ -8,9 +8,11 @@ import { firstScreenRoutes } from "./modules/firstScreen/routes";
 import { useNotification } from "./shared/hooks/useNotification";
 import { userRoutes } from "./modules/user/routes";
 import { dashboardRoutes } from "./modules/dashboard/routes";
+import { importCSVRoutes } from "./modules/importCSV/routes";
 
 const routes: RouteObject[] = [...loginRoutes];
 const routesLoggedIn: RouteObject[] = [
+  ...importCSVRoutes,
   ...dashboardRoutes,
   ...userRoutes,
   ...firstScreenRoutes
