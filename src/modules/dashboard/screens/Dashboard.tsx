@@ -62,7 +62,6 @@ const Dashboard: React.FC = () => {
     const [chartSoilOptions, setChartSoilOptions] = useState({});    
     const [ chartFundingOptions , setChartFundingOptions ] = useState({});
     
-
     // EVENTS
     useEffect(() => {
         const fetchData = async () => {
@@ -116,7 +115,6 @@ const Dashboard: React.FC = () => {
             chartReforestedByUfOptions,
             chartFundingOptions
         ]);
-
 
     useEffect(() => {
         if (co2.length > 0) {
