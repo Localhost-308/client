@@ -19,12 +19,17 @@ import { AreaListType } from "../../../shared/types/AreaListType";
 import { AreaType } from "../../../shared/types/AreaType";
 import { BoxButtons } from "../../../shared/components/styles/boxButtons.style";
 import { TreeHealth } from "../../../shared/types/treeHealth";
+import { Serie } from "../../../shared/types/ReforestedByUf";
 import { SoilType } from "../../../shared/types/SoilType";
+
 
 const Dashboard: React.FC = () => {
     const { request } = useRequests();
     const { setNotification } = useGlobalReducer();
     const { isLoading, setLoading } = useLoading();
+    
+    const [chartReforestedByUfType, setReforestedByUfType] = useState<'soil_type' | 'planting_techniques'>('soil_type');
+
     const [ startDate, setStartDate ] = useState<string>('');
     const [ endDate, setEndDate ] = useState<string>('');
     const [ co2, setCO2Info ] = useState<CO2Type[]>([]);
@@ -35,6 +40,7 @@ const Dashboard: React.FC = () => {
     const [ selectedArea, setSelectedArea ] = useState<string | null>(null);
     const [ areaNames, setAreasNames ] = useState<AreaListType[]>([])
     const [ reflorested, setAreaInfo ] = useState<AreaType[]>([])
+    const [ reforestedByUf, setReforestedByUf ] = useState<any>([])
 
     // CHARTS
     const [ allChartsOptions, setAllChartsOptions ] = useState<{options:any;title:string;fraction:number}[]>([]);
@@ -42,6 +48,7 @@ const Dashboard: React.FC = () => {
     const [ chartSurvivalOptions, setChartSurvivalOptions ] = useState({});
     const [ treeHealthOptions, setTreeHealthOptions ] = useState({});
     const [ chartReflorestedOptions , setChartReflorestedOptions ] = useState({});
+    const [ chartReforestedByUfOptions , setChartReforestedByUfOptions ] = useState({});
     const [ chartSoilOptions , setChartSoilOptions ] = useState({});
     
     // EVENTS
@@ -54,6 +61,7 @@ const Dashboard: React.FC = () => {
                 request(`${URL_AREA}/list`, MethodsEnum.GET, setAreasNames),
                 request(`${URL_AREA_INFORMATION}/tree-health`, MethodsEnum.GET, setTreeHealth),
                 request(`${URL_AREA}/reflorested-area`, MethodsEnum.GET, setAreaInfo),
+                request(`${URL_AREA_INFORMATION}/reforested-area-summary`, MethodsEnum.GET, setReforestedByUf),
                 request(`${URL_AREA_INFORMATION}/soil`, MethodsEnum.GET, setSoilInfo),
             ]);
           } catch (error) {
@@ -71,6 +79,7 @@ const Dashboard: React.FC = () => {
         if (Object.keys(chartSurvivalOptions).length > 0) arrayCharts.push({ options: chartSurvivalOptions, title: "Taxa de Sobrevivência", fraction: 2});
         if (Object.keys(treeHealthOptions).length > 0) arrayCharts.push({ options: treeHealthOptions, title: "Saúde das árvores", fraction: 1});
         if (Object.keys(chartReflorestedOptions).length > 0) arrayCharts.push({ options: chartReflorestedOptions, title: "Comparativo: Área Inicial e Recuperada", fraction: 2});
+        if (Object.keys(chartReforestedByUfOptions).length > 0) arrayCharts.push({ options: chartReforestedByUfOptions, title: "Área Reflorestada - Tipo de solo/Técnica de plantio", fraction: 1});
         if (Object.keys(chartSoilOptions).length > 0) arrayCharts.push({ options: chartSoilOptions, title: "Índice de Fertilidade do Solo", fraction: 2});
         if (arrayCharts.length > 0){
             setAllChartsOptions([]);
@@ -86,7 +95,8 @@ const Dashboard: React.FC = () => {
         chartCO2Options, 
         chartSurvivalOptions,
         treeHealthOptions,
-        chartReflorestedOptions
+        chartReflorestedOptions,
+        chartReforestedByUfOptions
     ]);
 
     useEffect(() => { 
@@ -251,6 +261,73 @@ const Dashboard: React.FC = () => {
         }
     }, [reflorested]);
 
+    useEffect(() => {
+        if (!reforestedByUf) return;
+    
+        const summary: any[] = Object.values(reforestedByUf).sort(
+            (a: any, b: any) => a[chartReforestedByUfType].total - b[chartReforestedByUfType].total
+        );
+    
+        const ufs: string[] = Object.keys(reforestedByUf);
+        let categoryNames = summary.map((uf) => Object.keys(uf[chartReforestedByUfType])).flat();
+        categoryNames = [...new Set(categoryNames)].filter(name => name !== "total");
+    
+        const seriesData: Serie[] = [];
+    
+        categoryNames.forEach(categoryName => {
+            seriesData.push({
+                name: categoryName.toUpperCase(),
+                type: 'bar',
+                stack: 'total',
+                label: { show: false },
+                emphasis: { focus: 'series' },
+                data: summary.map((uf: any) => uf[chartReforestedByUfType][categoryName] || 0)
+            });
+        });
+    
+        setChartReforestedByUfOptions({
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+            legend: {},
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            height: 300,
+            xAxis: { type: 'value' },
+            yAxis: { type: 'category', data: ufs.map((uf) => uf.toUpperCase()) },
+            dataZoom: [{ type: 'slider', yAxisIndex: 0, start: 50, end: 0, show: true }],
+            series: seriesData,
+            graphic: [
+                {
+                    type: 'group',
+                    left: 'center',
+                    top: 30,
+                    children: [
+                        {
+                            type: 'rect',
+                            left: 'center',
+                            top: 'middle',
+                            shape: { width: 200, height: 20, r: 5 },
+                            style: { fill: '#007BFF' },
+                            onclick: () => setReforestedByUfType(prev => prev === 'soil_type' ? 'planting_techniques' : 'soil_type')
+                        },
+                        {
+                            type: 'text',
+                            left: 'center',
+                            top: 'middle',
+                            style: {
+                                text: `${chartReforestedByUfType === 'soil_type' ? 'Tipo de Solo' : 'Técnica de Plantio'}`,
+                                fill: '#FFF',
+                                font: 'bold 12px Arial',
+                                textAlign: 'center',
+                                textVerticalAlign: 'middle'
+                            },
+                            onclick: () => setReforestedByUfType(prev => prev === 'soil_type' ? 'planting_techniques' : 'soil_type')
+                        },
+                    ]
+                }
+            ]
+        });
+    }, [reforestedByUf, chartReforestedByUfType]);
+
+    
     useEffect(() => { 
         if (soil.length > 0) {
             const measurementDates = Array.from(new Set(soil.map((so) => so.measurement_date)));
@@ -302,6 +379,7 @@ const Dashboard: React.FC = () => {
             });
         }
     }, [soil]);
+                                  
     
     // BREADCRUMB
     const listBreadcrumb = [
