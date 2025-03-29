@@ -11,7 +11,8 @@ import { DashboardOutlined,
     DownOutlined, 
     UserOutlined, 
     MenuOutlined, 
-    SearchOutlined } from '@ant-design/icons';
+    SearchOutlined, 
+    FileExcelOutlined} from '@ant-design/icons';
 
 import logo from '../../../../public/kersys.png';
 import icon from '../../../../public/kersys.png';
@@ -25,6 +26,7 @@ import { DashboardRoutesEnum } from '../../../modules/dashboard/routes';
 import { UserRoutesEnum } from '../../../modules/user/routes';
 import { ContainerLogoName, NameCompany } from '../menu/menu.style';
 import { useWindowSize } from '../../hooks/useWindowSize';
+import { ImportCSVRoutesEnum } from '../../../modules/importCSV/routes';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -62,6 +64,12 @@ const Header = () => {
           label: 'Dashboard Geral',
           onClick: () => navigate(DashboardRoutesEnum.DASHBOARD)
         },
+        {
+            key: 'import_key',
+            icon: <FileExcelOutlined />,
+            label: 'Importar Dados',
+            onClick: () => navigate(ImportCSVRoutesEnum.IMPORT_CSV)
+          },
         {
             key: 'consult_insert',
             icon: <SearchOutlined />,
