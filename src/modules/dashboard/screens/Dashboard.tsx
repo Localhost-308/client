@@ -20,6 +20,8 @@ import { AreaType } from "../../../shared/types/AreaType";
 import { BoxButtons } from "../../../shared/components/styles/boxButtons.style";
 import { TreeHealth } from "../../../shared/types/treeHealth";
 import { Serie } from "../../../shared/types/ReforestedByUf";
+import { SoilType } from "../../../shared/types/SoilType";
+
 
 const Dashboard: React.FC = () => {
     const { request } = useRequests();
@@ -33,6 +35,7 @@ const Dashboard: React.FC = () => {
     const [ co2, setCO2Info ] = useState<CO2Type[]>([]);
     const [ tree, setTreeInfo ] = useState<AreaInformationTreeType[]>([]);
     const [ treeHealth, setTreeHealth ] = useState<TreeHealth | null>(null);
+    const [ soil, setSoilInfo ] = useState<SoilType[]>([]);
     
     const [ selectedArea, setSelectedArea ] = useState<string | null>(null);
     const [ areaNames, setAreasNames ] = useState<AreaListType[]>([])
@@ -46,6 +49,7 @@ const Dashboard: React.FC = () => {
     const [ treeHealthOptions, setTreeHealthOptions ] = useState({});
     const [ chartReflorestedOptions , setChartReflorestedOptions ] = useState({});
     const [ chartReforestedByUfOptions , setChartReforestedByUfOptions ] = useState({});
+    const [ chartSoilOptions , setChartSoilOptions ] = useState({});
     
     // EVENTS
     useEffect(() => {
@@ -58,6 +62,7 @@ const Dashboard: React.FC = () => {
                 request(`${URL_AREA_INFORMATION}/tree-health`, MethodsEnum.GET, setTreeHealth),
                 request(`${URL_AREA}/reflorested-area`, MethodsEnum.GET, setAreaInfo),
                 request(`${URL_AREA_INFORMATION}/reforested-area-summary`, MethodsEnum.GET, setReforestedByUf),
+                request(`${URL_AREA_INFORMATION}/soil`, MethodsEnum.GET, setSoilInfo),
             ]);
           } catch (error) {
             setNotification(String(error), NotificationEnum.ERROR);
@@ -75,6 +80,7 @@ const Dashboard: React.FC = () => {
         if (Object.keys(treeHealthOptions).length > 0) arrayCharts.push({ options: treeHealthOptions, title: "Saúde das árvores", fraction: 1});
         if (Object.keys(chartReflorestedOptions).length > 0) arrayCharts.push({ options: chartReflorestedOptions, title: "Comparativo: Área Inicial e Recuperada", fraction: 2});
         if (Object.keys(chartReforestedByUfOptions).length > 0) arrayCharts.push({ options: chartReforestedByUfOptions, title: "Área Reflorestada - Tipo de solo/Técnica de plantio", fraction: 1});
+        if (Object.keys(chartSoilOptions).length > 0) arrayCharts.push({ options: chartSoilOptions, title: "Índice de Fertilidade do Solo", fraction: 2});
         if (arrayCharts.length > 0){
             setAllChartsOptions([]);
             arrayCharts.forEach((chart) => {
@@ -320,6 +326,60 @@ const Dashboard: React.FC = () => {
             ]
         });
     }, [reforestedByUf, chartReforestedByUfType]);
+
+    
+    useEffect(() => { 
+        if (soil.length > 0) {
+            const measurementDates = Array.from(new Set(soil.map((so) => so.measurement_date)));
+            const fertilizations = Array.from(new Set(soil.map((so) => so.fertilization)));
+            const groupedData = measurementDates.map((date) => {
+                return fertilizations.map((fertilization) => {
+                    const soilEntry = soil.find((so) => so.measurement_date === date && so.fertilization === fertilization);
+                    return soilEntry ? soilEntry.avg_soil_fertility_index_percent : 0; 
+                });
+            });
+    
+            setChartSoilOptions({
+                tooltip: {
+                    trigger: 'item', 
+                    axisPointer: { type: 'shadow' },
+                    formatter: function (params: { name: any; value: any; seriesName: any; }) {
+                        const { name, value, seriesName } = params;
+                        return `${seriesName}: <br> Data: ${name} <br> Fertilidade: ${value}%`;
+                    },
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    top: '10%',
+                    containLabel: true
+                },
+                xAxis: [{
+                    type: 'category',
+                    data: measurementDates, 
+                    axisTick: { alignWithLabel: true },
+                }],
+                yAxis: [{ type: 'value' }],
+                legend: {
+                    data: fertilizations,  
+                    top: '5%',
+                    left: 'center',
+                },
+                series: fertilizations.map((fertilization, index) => ({
+                    name: fertilization,  
+                    type: 'bar',
+                    barWidth: '40%',
+                    data: groupedData.map((group) => group[index]),  
+                    itemStyle: {
+                        color: '#025940',
+                        borderRadius: [8, 8, 0, 0]
+                    },
+                })),
+            });
+        }
+    }, [soil]);
+                                  
     
     // BREADCRUMB
     const listBreadcrumb = [
@@ -334,7 +394,8 @@ const Dashboard: React.FC = () => {
             setLoading(true)
             await Promise.all([
                 request(`${URL_AREA_INFORMATION}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setCO2Info),
-                request(`${URL_AREA_INFORMATION_TREE}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setTreeInfo)
+                request(`${URL_AREA_INFORMATION_TREE}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setTreeInfo),
+                request(`${URL_AREA_INFORMATION}/soil?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setSoilInfo),
             ]).finally(() => setLoading(false))
         }else{
             setNotification('Definir Data Inicial e Final!', NotificationEnum.WARNING)
@@ -345,7 +406,8 @@ const Dashboard: React.FC = () => {
         try {
             await Promise.all([
                 request(`${URL_AREA_INFORMATION_TREE}?area_id=${areaId}`, MethodsEnum.GET, setTreeInfo),
-                request(`${URL_AREA}/reflorested-area?area_id=${areaId}`, MethodsEnum.GET, setAreaInfo)
+                request(`${URL_AREA}/reflorested-area?area_id=${areaId}`, MethodsEnum.GET, setAreaInfo),
+                request(`${URL_AREA_INFORMATION}/soil-area?area_id=${areaId}`, MethodsEnum.GET, setSoilInfo)
             ]);
           } catch (error) {
             setNotification(String(error), NotificationEnum.ERROR);
