@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { ConfigProvider, DatePicker } from "antd";
 import { ConfigProvider, DatePicker, TableColumnsType } from "antd";
 import ptBR from 'antd/es/locale/pt_BR';
 import "dayjs/locale/pt-br";
@@ -26,6 +27,10 @@ import { Serie } from "../../../shared/types/ReforestedByUf";
 import { SoilType } from "../../../shared/types/SoilType";
 import { PlantedSpecieType } from "../../../shared/types/PlantedSpecieType";
 import { PlantingTechniqueType } from "../../../shared/types/PlantingTechniqueType";
+import { brazilStates } from "../../../shared/constants/brazilStates";
+import { MarginTitle } from "../../../shared/components/styles/marginTitle.styled";
+import { GridContainerVertical } from "../../../shared/components/styles/gridContainer.style";
+
 
 const Dashboard: React.FC = () => {
     const { request } = useRequests();
@@ -43,11 +48,13 @@ const Dashboard: React.FC = () => {
     const [soil, setSoilInfo] = useState<SoilType[]>([]);
     const [planted, setPlantedInfo] = useState<PlantedSpecieType[]>([]);
     const [planting, setPlantingInfo] = useState<PlantingTechniqueType[]>([]);
-
     const [selectedArea, setSelectedArea] = useState<string | null>(null);
     const [areaNames, setAreasNames] = useState<AreaListType[]>([]);
     const [reflorested, setAreaInfo] = useState<AreaType[]>([]);
     const [reforestedByUf, setReforestedByUf] = useState<any>([]);
+    const [ selectedUf, setSelectedUf ] = useState<string | null>(null);
+    const [ selectedYear, setSelectedYear ] = useState<string | null>(null);
+    const [ fundings, setFundings ] = useState<FundingData | null>(null);
 
     const { RangePicker } = DatePicker;
 
@@ -59,9 +66,9 @@ const Dashboard: React.FC = () => {
     const [treeHealthOptions, setTreeHealthOptions] = useState({});
     const [chartReflorestedOptions, setChartReflorestedOptions] = useState({});
     const [chartReforestedByUfOptions, setChartReforestedByUfOptions] = useState({});
-    const [chartSoilOptions, setChartSoilOptions] = useState({});
     const [chartPlantedOptions, setChartPlantedOptions] = useState({});
-    const [chartPlantingOptions, setChartPlantingOptions] = useState({});
+    const [chartSoilOptions, setChartSoilOptions] = useState({});    
+    const [ chartFundingOptions , setChartFundingOptions ] = useState({});
 
     // EVENTS
     useEffect(() => {
@@ -78,6 +85,7 @@ const Dashboard: React.FC = () => {
                     request(`${URL_AREA_INFORMATION}/soil`, MethodsEnum.GET, setSoilInfo),
                     request(`${URL_AREA}/planted-species`, MethodsEnum.GET, setPlantedInfo),
                     request(`${URL_AREA}/planting-techniques`, MethodsEnum.GET, setPlantingInfo),
+                    request(`${URL_AREA_INFORMATION}/funding_by_uf_year`, MethodsEnum.GET, setFundings),
                 ]);
             } catch (error) {
                 setNotification(String(error), NotificationEnum.ERROR);
@@ -99,7 +107,8 @@ const Dashboard: React.FC = () => {
         if (Object.keys(chartSoilOptions).length > 0) arrayCharts.push({ options: chartSoilOptions, title: "Índice de Fertilidade do Solo", fraction: 2 });
         if (Object.keys(chartPlantedOptions).length > 0) arrayCharts.push({ options: chartPlantedOptions, title: "Espécies Plantadas", fraction: 2 });
         if (Object.keys(chartPlantingOptions).length > 0) arrayCharts.push({ options: chartPlantingOptions, title: "Técnicas de Plantio", fraction: 2 });
-        if (arrayCharts.length > 0) {
+        if (Object.keys(chartFundingOptions).length > 0) arrayCharts.push({ options: chartFundingOptions, title: "Fontes de Financiamento", fraction: 1});
+        if (arrayCharts.length > 0){
             setAllChartsOptions([]);
             arrayCharts.forEach((chart) => {
                 setAllChartsOptions((prevData) => [
@@ -117,7 +126,7 @@ const Dashboard: React.FC = () => {
             chartReflorestedOptions,
             chartReforestedByUfOptions,
             chartPlantedOptions,
-            chartPlantingOptions
+            chartFundingOptions
         ]);
 
     useEffect(() => {
@@ -203,7 +212,7 @@ const Dashboard: React.FC = () => {
 
     useEffect(() => {
         const soilNames: string[] = Object.keys(survivalBySoil).map(name => name.toUpperCase());
-        const soilRates: number[] = Object.values(survivalBySoil).map((value: any) => value | 0);
+        const soilRates: number[] = Object.values(survivalBySoil).map(value => Number(value) | 0);
 
         setChartSurvivalBySoilOptions({
             xAxis: {
@@ -227,7 +236,6 @@ const Dashboard: React.FC = () => {
         const comPragas: any[] = []
         const morrendo: any[] = []
         const saudaveis: any[] = []
-
 
         for (const [technic, healtValues] of Object.entries(treeHealth)) {
             comPragas.push(technic, healtValues.comPragas);
@@ -505,7 +513,56 @@ const Dashboard: React.FC = () => {
             });
         }
     }, [planting]);
-    
+  
+  useEffect(() => {
+        if (fundings) {
+            const seriesData = Object.entries(fundings.funding_sources).map(
+                ([source, details]) => ({
+                  value: details.percent,
+                  name: source.toUpperCase()
+                })
+              );
+            setChartFundingOptions({
+                tooltip: {
+                  trigger: 'item'
+                },
+                legend: {
+                  top: '5%',
+                  left: 'center'
+                },
+                series: [
+                  {
+                    name: 'Access From',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                      borderRadius: 10,
+                      borderColor: '#fff',
+                      borderWidth: 2
+                    },
+                    label: {
+                      show: false,
+                      position: 'center'
+                    },
+                    emphasis: {
+                      label: {
+                        show: true,
+                        fontSize: 15,
+                        fontWeight: 'bold'
+                      }
+                    },
+                    labelLine: {
+                      show: false
+                    },
+                    data: seriesData
+                  }
+                ]
+              });
+        }
+    }, [fundings]);
+ 
+  
     // TABLE
     const columns: TableColumnsType<AreaType> = [
         {
@@ -572,7 +629,7 @@ const Dashboard: React.FC = () => {
                 request(`${URL_AREA_INFORMATION_TREE}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setTreeInfo),
                 request(`${URL_AREA_INFORMATION}/soil?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setSoilInfo),
                 request(`${URL_AREA}/planted-species?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setPlantedInfo),
-
+                request(`${URL_AREA_INFORMATION}/funding_by_uf_year?uf=${selectedUf}&year=${selectedYear}`, MethodsEnum.GET, setFundings)
             ]).finally(() => setLoading(false))
         } else {
             setNotification('Definir Data Inicial e Final!', NotificationEnum.WARNING)
@@ -612,6 +669,29 @@ const Dashboard: React.FC = () => {
                     options={areaNames.map((a) => ({ value: a.id, label: a.area_name }))}
                     placeholder="Selecione uma área"/>
             </BoxButtons>
+            <GridContainerVertical>
+                <MarginTitle>
+                    Funding Resources Chart
+                </MarginTitle>
+
+                <Select 
+                    value={selectedUf}
+                    onChange={(uf) => setSelectedUf(uf)}
+                    style={{ width: 200, margin: '1em' }}
+                    options={brazilStates.map((uf) => ({value: uf.value, label: uf.label}))}
+                    placeholder="State"
+                    />
+                <Select 
+                    value={selectedYear}
+                    onChange={(year) => setSelectedYear(year)}
+                    style={{ width: 200, margin: '1em' }}
+                    options={Array.from({ length: 2025 - 2020 + 1 }, (_, i) => {
+                        const year = 2020 + i;
+                        return { value: year, label: year.toString() };
+                    })}
+                    placeholder="ANO"
+                    />
+            </GridContainerVertical>
             <Button id="filter" text="Aplicar Filtros" type="button" onClick={() => handleFilter()} />
             <h2>Áreas Reflorestadas</h2>
                     <StyledTable
