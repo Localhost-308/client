@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { ConfigProvider, DatePicker } from "antd";
-import { ConfigProvider, DatePicker, TableColumnsType } from "antd";
-import ptBR from 'antd/es/locale/pt_BR';
+import ReactECharts from 'echarts-for-react';
+import { DatePicker, Table, TableColumnsType } from "antd";
 import "dayjs/locale/pt-br";
 
 import Screen from "../../../shared/components/screen/Screen";
 import Button from "../../../shared/components/buttons/button/Button";
 import FirstScreen from "../../firstScreen";
-import ChartsContainer from "../../../shared/components/charts/ChartsContainer";
 import Select from "../../../shared/components/inputs/select/Select";
-import { StyledTableContainer, StyledTable } from '../styles/Table.style';
+import ChartContainer from "../../../shared/components/charts/ChartContainer";
+import ChartGridItem from "../../../shared/components/charts/ChartGridItem";
 import { useRequests } from "../../../shared/hooks/useRequests";
 import { URL_AREA_INFORMATION, URL_AREA_INFORMATION_TREE, URL_AREA } from "../../../shared/constants/urls";
 import { MethodsEnum } from "../../../shared/enums/methods.enum";
@@ -30,6 +29,7 @@ import { PlantingTechniqueType } from "../../../shared/types/PlantingTechniqueTy
 import { brazilStates } from "../../../shared/constants/brazilStates";
 import { MarginTitle } from "../../../shared/components/styles/marginTitle.styled";
 import { GridContainerVertical } from "../../../shared/components/styles/gridContainer.style";
+import { formatNumberWithThousandSeparator, formatToMillion } from "../../../shared/functions/utils/number";
 
 
 const Dashboard: React.FC = () => {
@@ -52,23 +52,21 @@ const Dashboard: React.FC = () => {
     const [areaNames, setAreasNames] = useState<AreaListType[]>([]);
     const [reflorested, setAreaInfo] = useState<AreaType[]>([]);
     const [reforestedByUf, setReforestedByUf] = useState<any>([]);
-    const [ selectedUf, setSelectedUf ] = useState<string | null>(null);
-    const [ selectedYear, setSelectedYear ] = useState<string | null>(null);
-    const [ fundings, setFundings ] = useState<FundingData | null>(null);
+    const [selectedUf, setSelectedUf] = useState<string>();
+    const [selectedYear, setSelectedYear] = useState<string | null>(null);
+    const [fundings, setFundings] = useState<FundingData | null>(null);
 
     const { RangePicker } = DatePicker;
 
     // CHARTS
-    const [allChartsOptions, setAllChartsOptions] = useState<{ options: any; title: string; fraction: number }[]>([]);
     const [chartCO2Options, setChartCO2Options] = useState({});
     const [chartSurvivalOptions, setChartSurvivalOptions] = useState({});
     const [chartSurvivalBySoilOptions, setChartSurvivalBySoilOptions] = useState({});
     const [treeHealthOptions, setTreeHealthOptions] = useState({});
-    const [chartReflorestedOptions, setChartReflorestedOptions] = useState({});
     const [chartReforestedByUfOptions, setChartReforestedByUfOptions] = useState({});
     const [chartPlantedOptions, setChartPlantedOptions] = useState({});
-    const [chartSoilOptions, setChartSoilOptions] = useState({});    
-    const [ chartFundingOptions , setChartFundingOptions ] = useState({});
+    const [chartSoilOptions, setChartSoilOptions] = useState({});
+    const [chartFundingOptions, setChartFundingOptions] = useState({});
 
     // EVENTS
     useEffect(() => {
@@ -80,7 +78,6 @@ const Dashboard: React.FC = () => {
                     request(`${URL_AREA}/list`, MethodsEnum.GET, setAreasNames),
                     request(`${URL_AREA_INFORMATION}/average-tree-survival`, MethodsEnum.GET, setSurvivalBySoil),
                     request(`${URL_AREA_INFORMATION}/tree-health`, MethodsEnum.GET, setTreeHealth),
-                    request(`${URL_AREA}/reflorested-area`, MethodsEnum.GET, setAreaInfo),
                     request(`${URL_AREA_INFORMATION}/reforested-area-summary`, MethodsEnum.GET, setReforestedByUf),
                     request(`${URL_AREA_INFORMATION}/soil`, MethodsEnum.GET, setSoilInfo),
                     request(`${URL_AREA}/planted-species`, MethodsEnum.GET, setPlantedInfo),
@@ -97,39 +94,6 @@ const Dashboard: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        const arrayCharts: any[] = []
-        if (Object.keys(chartCO2Options).length > 0) arrayCharts.push({ options: chartCO2Options, title: "Emissões de CO2", fraction: 1 });
-        if (Object.keys(chartSurvivalOptions).length > 0) arrayCharts.push({ options: chartSurvivalOptions, title: "Taxa de Sobrevivência", fraction: 2 });
-        if (Object.keys(chartSurvivalBySoilOptions).length > 0) arrayCharts.push({ options: chartSurvivalBySoilOptions, title: "Taxa de Sobrevivência por Solo", fraction: 1 });
-        if (Object.keys(treeHealthOptions).length > 0) arrayCharts.push({ options: treeHealthOptions, title: "Saúde das árvores", fraction: 1 });
-        if (Object.keys(chartReflorestedOptions).length > 0) arrayCharts.push({ options: chartReflorestedOptions, title: "Comparativo: Área Inicial e Recuperada", fraction: 2 });
-        if (Object.keys(chartReforestedByUfOptions).length > 0) arrayCharts.push({ options: chartReforestedByUfOptions, title: "Área Reflorestada - Tipo de solo/Técnica de plantio", fraction: 1 });
-        if (Object.keys(chartSoilOptions).length > 0) arrayCharts.push({ options: chartSoilOptions, title: "Índice de Fertilidade do Solo", fraction: 2 });
-        if (Object.keys(chartPlantedOptions).length > 0) arrayCharts.push({ options: chartPlantedOptions, title: "Espécies Plantadas", fraction: 2 });
-        if (Object.keys(chartPlantingOptions).length > 0) arrayCharts.push({ options: chartPlantingOptions, title: "Técnicas de Plantio", fraction: 2 });
-        if (Object.keys(chartFundingOptions).length > 0) arrayCharts.push({ options: chartFundingOptions, title: "Fontes de Financiamento", fraction: 1});
-        if (arrayCharts.length > 0){
-            setAllChartsOptions([]);
-            arrayCharts.forEach((chart) => {
-                setAllChartsOptions((prevData) => [
-                    ...prevData,
-                    chart
-                ]);
-            })
-        }
-    },
-        [
-            chartCO2Options,
-            chartSurvivalOptions,
-            chartSurvivalBySoilOptions,
-            treeHealthOptions,
-            chartReflorestedOptions,
-            chartReforestedByUfOptions,
-            chartPlantedOptions,
-            chartFundingOptions
-        ]);
-
-    useEffect(() => {
         if (co2.length > 0) {
             const orderedCO2 = [...co2].sort(
                 (a, b) => new Date(a.measurement_date).getTime() - new Date(b.measurement_date).getTime()
@@ -137,6 +101,17 @@ const Dashboard: React.FC = () => {
             const dates = orderedCO2.map((oc) => oc.measurement_date);
             const co2Ordered = orderedCO2.map((oc) => oc.total_avoided_co2)
             setChartCO2Options({
+                title: {
+                    text: `Emissões de CO2 (toneladas)`,
+                    left: 'center'
+                },
+                grid: {
+                    left: '5%',
+                    right: '4%',
+                    bottom: '10%',
+                    top: '10%',
+                    containLabel: true
+                },
                 xAxis: {
                     type: 'category',
                     data: dates,
@@ -152,11 +127,15 @@ const Dashboard: React.FC = () => {
                     type: 'value',
                     name: 'Emissões de CO2 (ton)',
                     nameLocation: 'middle',
-                    nameGap: 45,
+                    axisLabel: {
+                        formatter: (value: number) => `${formatNumberWithThousandSeparator((value/1000).toFixed(0))} ton`
+                    },
+                    nameGap: 75,
                     nameTextStyle: {
                         fontWeight: 'bold',
                         fontSize: 12
-                    }
+                    },
+                    min: 49000000
                 },
                 series: [
                     {
@@ -170,62 +149,98 @@ const Dashboard: React.FC = () => {
     }, [co2]);
 
     useEffect(() => {
-        if (Array.isArray(tree) && tree.length > 0) {
-            const measurementDate = tree.map((tr) => tr.measurement_date);
-            const survivalRate = tree.map((tr) => {
-                return Math.round(tr.survival_rate * 100);
-            });
+        if (tree.length === 0 || tree === undefined || tree === null) return;
+        const measurementDate = tree.map((tr) => tr.measurement_date);
+        const survivalRate = tree.map((tr) => parseFloat((tr.survival_rate * 100).toFixed(2)));
 
-            setChartSurvivalOptions({
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: { type: 'shadow' },
+        setChartSurvivalOptions({
+            title: {
+                text: 'Percentual de Sobrevivência das Arvores Plantadas',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' },
+                formatter: (params: any) => {
+                    const date = params[0].axisValue;
+                    const value = params[0].data;
+                    return `${date}<br/>Sobrevivência: ${value.toFixed(2)}%`;
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '10%',
+                top: '10%',
+                containLabel: true
+            },
+            xAxis: [{
+                type: 'category',
+                data: measurementDate,
+                axisTick: { alignWithLabel: true },
+            }],
+            yAxis: [{
+                type: 'value',
+                axisLabel: {
+                    formatter: '{value}%'
                 },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '10%',
-                    top: '10%',
-                    containLabel: true
-                },
-                xAxis: [{
-                    type: 'category',
-                    data: measurementDate,
-                    axisTick: { alignWithLabel: true },
-                }],
-                yAxis: [{ type: 'value' }],
-                series: [
-                    {
-                        name: 'Sobrevivência',
-                        type: 'bar',
-                        barWidth: '40%',
-                        data: survivalRate,
-                        itemStyle: {
-                            color: '#007BFF',
-                            borderRadius: [8, 8, 0, 0]
-                        },
+                max: 90,
+                min: 88
+            }],
+            series: [
+                {
+                    name: 'Sobrevivência',
+                    type: 'bar',
+                    barWidth: '40%',
+                    data: survivalRate,
+                    itemStyle: {
+                        color: '#007BFF',
+                        borderRadius: [8, 8, 0, 0]
                     },
-                ]
-            });
-        }
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: (params: any) => {
+                            return `${params.data.toFixed(2)}%`;
+                        }
+                    }
+                },
+            ]
+        });
     }, [tree]);
 
     useEffect(() => {
         const soilNames: string[] = Object.keys(survivalBySoil).map(name => name.toUpperCase());
-        const soilRates: number[] = Object.values(survivalBySoil).map(value => Number(value) | 0);
+        const soilRates: number[] = Object.values(survivalBySoil).map(value => Number(value));
 
         setChartSurvivalBySoilOptions({
+            title: {
+                text: 'Taxa de Sobrevivência das Arvores Baseada no Solo',
+                left: 'center'
+            },
             xAxis: {
                 type: 'category',
                 data: soilNames
             },
             yAxis: {
-                type: 'value'
+                type: 'value',
+                axisLabel: {
+                    formatter: '{value}%'
+                },
+                max: 79.5,
+                min: 78.5
             },
             series: [
                 {
                     data: soilRates,
-                    type: 'bar'
+                    type: 'bar',
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: (params: any) => {
+                            return `${Number(params.data).toFixed(2)}%`;
+                        }
+                    }
                 }
             ]
         });
@@ -233,83 +248,84 @@ const Dashboard: React.FC = () => {
 
     useEffect(() => {
         if (!treeHealth) return;
-        const comPragas: any[] = []
-        const morrendo: any[] = []
-        const saudaveis: any[] = []
-
-        for (const [technic, healtValues] of Object.entries(treeHealth)) {
-            comPragas.push(technic, healtValues.comPragas);
-            morrendo.push(technic, healtValues.morrendo);
-            saudaveis.push(technic, healtValues.saudaveis);
-        }
+        const techniques = Object.keys(treeHealth);
+        const withPlague = techniques.map(tech => treeHealth[tech].comPragas);
+        const dying = techniques.map(tech => treeHealth[tech].morrendo);
+        const healthy = techniques.map(tech => treeHealth[tech].saudaveis);
 
         setTreeHealthOptions({
-            legend: {},
-            tooltip: {},
-            xAxis: { type: 'category' },
-            yAxis: { type: 'value' },
+            title:{
+                text: 'Saúde das Árvores Baseada na Técnica de Plantio',
+                left: 'center'
+            },
+            xAxis: {
+                type: 'category',
+                data: techniques,
+                axisLabel: {
+                    fontWeight: 'bold'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    formatter: (value: number) => formatToMillion(value)
+                }
+            },
+            legend: {
+                data: ['Com Pragas', 'Morrendo', 'Saudáveis'],
+                bottom: 0,
+                textStyle: {
+                    fontSize: 12
+                }
+            },
             series: [
-                { type: 'bar', name: 'Com Pragas', data: comPragas },
-                { type: 'bar', name: 'Morrendo', data: morrendo },
-                { type: 'bar', name: 'Saudáveis', data: saudaveis }
-            ]
+                {
+                    name: 'Com Pragas',
+                    type: 'bar',
+                    data: withPlague,
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: (params: any) => formatToMillion(params.value)
+                    },
+                    itemStyle: { color: '#FF6B6B' }
+                },
+                {
+                    name: 'Morrendo',
+                    type: 'bar',
+                    data: dying,
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: (params: any) => formatToMillion(params.value)
+                    },
+                    itemStyle: { color: '#FFA500' }
+                },
+                {
+                    name: 'Saudáveis',
+                    type: 'bar',
+                    data: healthy,
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: (params: any) => formatToMillion(params.value)
+                    },
+                    itemStyle: { color: '#4CAF50' }
+                }
+            ],
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' },
+                formatter: (params: any) => {
+                    let tooltip = `<strong>${params[0].name}</strong><br/>`;
+                    params.forEach((param: any) => {
+                        tooltip += `${param.seriesName}: ${formatToMillion(param.value)}<br/>`;
+                    });
+                    return tooltip;
+                }
+            }
         });
     }, [treeHealth]);
-
-    useEffect(() => {
-        if (reflorested.length > 0) {
-            const initialArea = reflorested.map((rf) => rf.initial_planted_area_hectares);
-            const reflorestedArea = reflorested.map((rf) => rf.reflorested_area_hectares);
-
-            setChartReflorestedOptions({
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: { type: 'shadow' },
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '10%',
-                    top: '10%',
-                    containLabel: true
-                },
-                legend: {
-                    data: ['Area Inicial', 'Area Recuperada'],
-                },
-                xAxis: [{
-                    show: false,
-                    type: 'category',
-                    data: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho'],
-                    axisTick: { alignWithLabel: true },
-                }],
-                yAxis: [{
-                    type: 'value'
-                }],
-                series: [
-                    {
-                        name: 'Área Inicial',
-                        type: 'bar',
-                        stack: 'Nativa',
-                        barWidth: '50%',
-                        data: initialArea,
-                        itemStyle: {
-                            color: '#03A64A',
-                        },
-                    },
-                    {
-                        name: 'Área Recuperada',
-                        type: 'bar',
-                        stack: 'Nativa',
-                        barWidth: '50%',
-                        data: reflorestedArea,
-                        itemStyle: {
-                            color: '#025940',
-                        },
-                    },
-                ]
-            });
-        }
-    }, [reflorested]);
 
     useEffect(() => {
         if (!reforestedByUf) return;
@@ -336,11 +352,23 @@ const Dashboard: React.FC = () => {
         });
 
         setChartReforestedByUfOptions({
-            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-            legend: {},
-            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            title: {
+                text: 'Área Reflorestada - Tipo de solo/Técnica de plantio',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' }
+            },
+            legend: {top: 55},
+            grid: { left: '3%', right: '4%', bottom: '3%', top: '30%',containLabel: true },
             height: 300,
-            xAxis: { type: 'value' },
+            xAxis: {
+                type: 'value',
+                axisLabel: {
+                    formatter: (value: number) => formatToMillion(value)
+                }
+            },
             yAxis: { type: 'category', data: ufs.map((uf) => uf.toUpperCase()) },
             dataZoom: [{ type: 'slider', yAxisIndex: 0, start: 50, end: 0, show: true }],
             series: seriesData,
@@ -377,192 +405,189 @@ const Dashboard: React.FC = () => {
         });
     }, [reforestedByUf, chartReforestedByUfType]);
 
-    /*useEffect(() => {
+    useEffect(() => {
         if (soil.length > 0) {
-            const measurementDates = Array.from(new Set(soil.map((so) => so.measurement_date)));
-            const fertilizations = Array.from(new Set(soil.map((so) => so.fertilization)));
-            const groupedData = measurementDates.map((date) => {
-                return fertilizations.map((fertilization) => {
-                    const soilEntry = soil.find((so) => so.measurement_date === date && so.fertilization === fertilization);
-                    return soilEntry ? soilEntry.avg_soil_fertility_index_percent : 0;
-                });
-            });
+            const measurementDates = Array.from(new Set(soil.map(item => item.measurement_date))).sort();
 
+            const fertilizations = Array.from(new Set(soil.map(item => item.fertilization)));
+
+            const seriesData = fertilizations.map(fert => {
+                return {
+                    name: fert,
+                    type: 'line',
+                    data: measurementDates.map(date => {
+                        const entry = soil.find(d => d.measurement_date === date && d.fertilization === fert);
+                        return entry ? entry.avg_soil_fertility_index_percent : null;
+                    }),
+                    smooth: true,
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    lineStyle: {
+                        width: 3
+                    }
+                };
+            });
             setChartSoilOptions({
+                title: {
+                    text: 'Fertilidade do Solo por Tipo de Fertilização',
+                    left: 'center'
+                },
                 tooltip: {
-                    trigger: 'item',
-                    axisPointer: { type: 'shadow' },
-                    formatter: function (params: { name: any; value: any; seriesName: any; }) {
-                        const { name, value, seriesName } = params;
-                        return `${seriesName}: <br> Data: ${name} <br> Fertilidade: ${value}%`;
-                    },
+                    trigger: 'axis',
+                    formatter: (params: any[]) => {
+                        let result = `<b>${params[0].axisValue}</b>`;
+                        params.forEach(param => {
+                            result += `<br/>${param.marker} ${param.seriesName}: ${param.value}%`;
+                        });
+                        return result;
+                    }
+                },
+                legend: {
+                    data: fertilizations,
+                    bottom: 10
                 },
                 grid: {
                     left: '3%',
                     right: '4%',
-                    bottom: '10%',
-                    top: '10%',
+                    bottom: '15%',
+                    top: '15%',
                     containLabel: true
                 },
-                xAxis: [{
+                xAxis: {
                     type: 'category',
                     data: measurementDates,
-                    axisTick: { alignWithLabel: true },
-                }],
-                yAxis: [{ type: 'value' }],
-                legend: {
-                    data: fertilizations,
-                    top: '5%',
-                    left: 'center',
+                    axisLabel: {
+                        rotate: 45
+                    }
                 },
-                series: fertilizations.map((fertilization, index) => ({
-                    name: fertilization,
-                    type: 'bar',
-                    barWidth: '40%',
-                    data: groupedData.map((group) => group[index]),
-                    itemStyle: {
-                        color: '#025940',
-                        borderRadius: [8, 8, 0, 0]
+                yAxis: {
+                    type: 'value',
+                    axisLabel: {
+                        formatter: '{value}%'
                     },
-                })),
-            });
+                    name: 'Fertilidade (%)',
+                    min: 45,
+                    max: 55
+                },
+                series: seriesData,
+                color: ['#4E79A7', '#F28E2B', '#E15759'],
+                emphasis: {
+                    focus: 'series'
+                }
+            })
         }
-    }, [soil]);*/
+    }, [soil]);
 
     useEffect(() => {
         if (planted.length > 0) {
-            const month = planted.map((pl) => pl.created_on_month);
-            const treePlanted = planted.map((pl) => pl.number_of_trees_planted);
-            const plantedSpecies = planted.map((pl) => pl.planted_species);
-    
-            const seriesData = [...new Set(plantedSpecies)].map((species) => ({
-                name: species, 
-                type: 'bar',
-                barWidth: '40%',
-                data: month.map((_, i) => planted[i].planted_species === species ? treePlanted[i] : 0),  
-                itemStyle: {
-                    color: '#49F054',  
-                    borderRadius: [8, 8, 0, 0]
-                },
-            }));
-    
+            const formatNumber = (num: number) => {
+                if (num >= 1e9) return `${(num / 1e9).toFixed(1)}B`;
+                if (num >= 1e6) return `${(num / 1e6).toFixed(1)}M`;
+                return num.toString();
+            };
             setChartPlantedOptions({
+                title: {
+                    text: 'Total de Espécies Plantadas',
+                    left: 'center'
+                },
                 tooltip: {
-                    trigger: 'axis',
-                    axisPointer: { type: 'shadow' },
+                  trigger: 'item',
+                  formatter: (params: any) => {
+                    return `${params.name}: <b>${params.value.toLocaleString()}</b> árvores`;
+                  }
                 },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '10%',
-                    top: '10%',
-                    containLabel: true
+                xAxis: {
+                  type: 'value',
+                  axisLabel: {
+                    formatter: (value: number) => formatNumber(value)
+                  }
                 },
-                xAxis: [{
-                    type: 'category',
-                    data: month,
-                    axisTick: { alignWithLabel: true },
+                yAxis: {
+                  type: 'category',
+                  data: planted.map(item => item.planted_species)
+                },
+                series: [{
+                  name: 'Árvores Plantadas',
+                  type: 'bar',
+                  data: planted.map(item => ({
+                    value: item.number_of_trees_planted,
+                    name: item.planted_species,
+                    itemStyle: {
+                      color: {
+                        'Espécies Exóticas': '#FF9F43',
+                        'Espécies Misturadas': '#28C76F',
+                        'Espécies Nativas': '#7367F0'
+                      }[item.planted_species]
+                    }
+                  })),
+                  label: {
+                    show: true,
+                    position: 'right',
+                    formatter: (params: any) => formatNumber(params.value)
+                  }
                 }],
-                yAxis: [{ type: 'value' }],
-                legend: {
-                    data: [...new Set(plantedSpecies)],  
-                    top: '5%',
-                    left: 'center',
-                },
-                series: seriesData  
-            });
+                grid: {
+                  left: '20%',
+                  right: '10%',
+                  top: '20%',
+                  containLabel: true
+                }
+              })
         }
     }, [planted]);
 
     useEffect(() => {
-        if (planting.length > 0) {
-            const quantities = planting.map((plt) => plt.quantity);
-            const plantingTechniquess = planting.map((plt) => plt.planting_techniques);
-    
-            setChartPlantingOptions({
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: { type: 'shadow' },
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '10%',
-                    top: '10%',
-                    containLabel: true
-                },
-                xAxis: [{
-                    type: 'value',  
-                }],
-                yAxis: [{
-                    type: 'category',  
-                    data: plantingTechniquess,  
-                }],
-                series: [
-                    {
-                        name: 'Quantidade',
-                        type: 'bar',
-                        barWidth: '40%',
-                        data: quantities,  
-                        itemStyle: {
-                            color: '#31A339',
-                            borderRadius: [8, 8, 0, 0]
-                        },
-                    },
-                ]
-            });
-        }
-    }, [planting]);
-  
-  useEffect(() => {
         if (fundings) {
             const seriesData = Object.entries(fundings.funding_sources).map(
                 ([source, details]) => ({
-                  value: details.percent,
-                  name: source.toUpperCase()
+                    value: details.percent,
+                    name: source.toUpperCase()
                 })
-              );
+            );
             setChartFundingOptions({
+                title: {
+                    text: 'Fontes de Financiamento',
+                    left: 'center'
+                },
                 tooltip: {
-                  trigger: 'item'
+                    trigger: 'item'
                 },
                 legend: {
-                  top: '5%',
-                  left: 'center'
+                    bottom: 10,
+                    left: 'center'
                 },
                 series: [
-                  {
-                    name: 'Access From',
-                    type: 'pie',
-                    radius: ['40%', '70%'],
-                    avoidLabelOverlap: false,
-                    itemStyle: {
-                      borderRadius: 10,
-                      borderColor: '#fff',
-                      borderWidth: 2
-                    },
-                    label: {
-                      show: false,
-                      position: 'center'
-                    },
-                    emphasis: {
-                      label: {
-                        show: true,
-                        fontSize: 15,
-                        fontWeight: 'bold'
-                      }
-                    },
-                    labelLine: {
-                      show: false
-                    },
-                    data: seriesData
-                  }
+                    {
+                        name: 'Access From',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 10,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: 15,
+                                fontWeight: 'bold'
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: seriesData
+                    }
                 ]
-              });
+            });
         }
     }, [fundings]);
- 
-  
+
     // TABLE
     const columns: TableColumnsType<AreaType> = [
         {
@@ -603,7 +628,7 @@ const Dashboard: React.FC = () => {
             dataIndex: 'total_reflorested_and_planted',
             key: 'total_reflorested_and_planted',
             width: '12,5%',
-            sorter: (a: AreaType, b: AreaType) => a.total_reflorested_and_planted- b.total_reflorested_and_planted,
+            sorter: (a: AreaType, b: AreaType) => a.total_reflorested_and_planted - b.total_reflorested_and_planted,
         },
         {
             title: 'UF',
@@ -611,7 +636,7 @@ const Dashboard: React.FC = () => {
             key: 'uf',
             width: '10%',
         }
-      ];
+    ];
 
     // BREADCRUMB
     const listBreadcrumb = [
@@ -662,47 +687,89 @@ const Dashboard: React.FC = () => {
         <Screen listBreadcrumb={listBreadcrumb}>
             {isLoading && <FirstScreen />}
             <BoxButtons>
-                <RangePicker format="DD/MM/YYYY" onChange={(event) => handleDefineDatesFilter(event)} style={{margin: '0 1em 0 0'}}/>
+                <RangePicker format="DD/MM/YYYY" onChange={(event) => handleDefineDatesFilter(event)} style={{ margin: '0 1em 0 0' }} />
                 <Select value={selectedArea}
                     onChange={(event) => handleSelectChange(event)}
                     style={{ width: 200, margin: '1em' }}
                     options={areaNames.map((a) => ({ value: a.id, label: a.area_name }))}
-                    placeholder="Selecione uma área"/>
+                    placeholder="Selecione uma área" />
             </BoxButtons>
             <GridContainerVertical>
                 <MarginTitle>
-                    Funding Resources Chart
+                    Estado Específico
                 </MarginTitle>
 
-                <Select 
-                    value={selectedUf}
+                <Select value={selectedUf}
                     onChange={(uf) => setSelectedUf(uf)}
                     style={{ width: 200, margin: '1em' }}
-                    options={brazilStates.map((uf) => ({value: uf.value, label: uf.label}))}
-                    placeholder="State"
-                    />
-                <Select 
-                    value={selectedYear}
+                    options={brazilStates.map((uf) => ({ value: uf.value, label: uf.label }))}
+                    placeholder="Estado" />
+                {/* <Select value={selectedYear}
                     onChange={(year) => setSelectedYear(year)}
                     style={{ width: 200, margin: '1em' }}
                     options={Array.from({ length: 2025 - 2020 + 1 }, (_, i) => {
                         const year = 2020 + i;
                         return { value: year, label: year.toString() };
                     })}
-                    placeholder="ANO"
-                    />
+                    placeholder="Ano" /> */}
             </GridContainerVertical>
             <Button id="filter" text="Aplicar Filtros" type="button" onClick={() => handleFilter()} />
-            <h2>Áreas Reflorestadas</h2>
-                    <StyledTable
-                        columns={columns}
-                        dataSource={reflorested}  
-                        rowKey="area_name" 
+            {reflorested.length > 0 && (
+                <>
+                    <h2>Áreas Reflorestadas</h2>
+                    <Table columns={columns}
+                        dataSource={reflorested}
+                        rowKey="area_name"
                         pagination={{ pageSize: 10 }}
-                        scroll={{ x: 1000, y: 500 }} 
-                    />
-            {allChartsOptions.length > 0 && <ChartsContainer charts={allChartsOptions} />}
-            
+                        scroll={{ x: 1000, y: 500 }} />
+                </>
+            )}
+
+            <ChartContainer gridTemplateColumns="repeat(5, 1fr)" gridTemplateRows="repeat(auto-fit, minmax(300px, 1fr))">
+                
+                {chartFundingOptions && (
+                    <ChartGridItem columnSpan={2}>
+                        <ReactECharts option={chartFundingOptions} />
+                    </ChartGridItem>
+                )}
+                {chartSoilOptions && (
+                    <ChartGridItem columnSpan={3}> 
+                        <ReactECharts option={chartSoilOptions} />
+                    </ChartGridItem>
+                )}
+                {chartSurvivalOptions && (
+                    <ChartGridItem columnSpan={3}>
+                        <ReactECharts option={chartSurvivalOptions} />
+                    </ChartGridItem>
+                )}
+                {chartSurvivalBySoilOptions && (
+                    <ChartGridItem columnSpan={2}>
+                        <ReactECharts option={chartSurvivalBySoilOptions} />
+                    </ChartGridItem>
+                )}
+                {chartReforestedByUfOptions && (
+                    <ChartGridItem columnSpan={3}>
+                        <ReactECharts option={chartReforestedByUfOptions} />
+                    </ChartGridItem>
+                )}
+                {chartPlantedOptions && (
+                    <ChartGridItem columnSpan={2}>
+                        <ReactECharts option={chartPlantedOptions} />
+                    </ChartGridItem>
+                )}
+                {treeHealth !== undefined && (
+                    <ChartGridItem columnSpan={3}>
+                        <ReactECharts option={treeHealthOptions} />
+                    </ChartGridItem>
+                )}
+
+                
+                {co2.length > 0 && (
+                    <ChartGridItem columnSpan={2}>
+                        <ReactECharts option={chartCO2Options} />
+                    </ChartGridItem>
+                )}
+            </ChartContainer>
         </Screen>
     )
 }

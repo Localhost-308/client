@@ -51,3 +51,7 @@ export const formatNumberWithThousandSeparator = (value: string | number): strin
     }
     return '0';
 }
+
+export const formatToMillion = (num: number) => {
+    return `${(num / 1_000_000).toFixed(1)} Mi`;
+};
