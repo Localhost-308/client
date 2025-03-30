@@ -1,5 +1,7 @@
 export interface AreaType {
     area_name: String,    
+    city: String,
+    uf: String,
     initial_planted_area_hectares: number,
     initial_vegetation_cover: String,
     number_of_trees_planted: number,
@@ -7,6 +9,5 @@ export interface AreaType {
     planting_techniques: String,  
     reflorested_area_hectares: number,  
     total_area_hectares: number,    
-    localization_id: number, 
-    company_id: number,    
+    total_reflorested_and_planted: number,
 }
