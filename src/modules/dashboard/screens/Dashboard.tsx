@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ConfigProvider, DatePicker } from "antd";
+import { ConfigProvider, DatePicker, TableColumnsType } from "antd";
+import ptBR from 'antd/es/locale/pt_BR';
 import "dayjs/locale/pt-br";
 
 import Screen from "../../../shared/components/screen/Screen";
@@ -7,6 +9,7 @@ import Button from "../../../shared/components/buttons/button/Button";
 import FirstScreen from "../../firstScreen";
 import ChartsContainer from "../../../shared/components/charts/ChartsContainer";
 import Select from "../../../shared/components/inputs/select/Select";
+import { StyledTableContainer, StyledTable } from '../styles/Table.style';
 import { useRequests } from "../../../shared/hooks/useRequests";
 import { URL_AREA_INFORMATION, URL_AREA_INFORMATION_TREE, URL_AREA } from "../../../shared/constants/urls";
 import { MethodsEnum } from "../../../shared/enums/methods.enum";
@@ -416,6 +419,7 @@ const Dashboard: React.FC = () => {
         }
     }, [soil]);
 
+
     useEffect(() => {
         if (fundings) {
             const seriesData = Object.entries(fundings.funding_sources).map(
@@ -463,7 +467,57 @@ const Dashboard: React.FC = () => {
               });
         }
     }, [fundings]);
-    
+ 
+    // TABLE
+    const columns: TableColumnsType<AreaType> = [
+        {
+            title: 'Área',
+            dataIndex: 'area_name',
+            key: 'area_name',
+            width: '20%',
+        },
+        {
+            title: 'Cidade',
+            dataIndex: 'city',
+            key: 'city',
+            width: '20%',
+        },
+        {
+            title: 'Área Inicial',
+            dataIndex: 'initial_planted_area_hectares',
+            key: 'initial_planted_area_hectares',
+            width: '12,5%',
+            sorter: (a: AreaType, b: AreaType) => a.initial_planted_area_hectares - b.initial_planted_area_hectares,
+        },
+        {
+            title: 'Área Reflorestada',
+            dataIndex: 'reflorested_area_hectares',
+            key: 'reflorested_area_hectares',
+            width: '12,5%',
+            sorter: (a: AreaType, b: AreaType) => a.reflorested_area_hectares - b.reflorested_area_hectares,
+        },
+        {
+            title: 'Área Total',
+            dataIndex: 'total_area_hectares',
+            key: 'total_area_hectares',
+            width: '12,5%',
+            sorter: (a: AreaType, b: AreaType) => a.total_area_hectares - b.total_area_hectares,
+        },
+        {
+            title: 'Área Plantada e Reflorestada',
+            dataIndex: 'total_reflorested_and_planted',
+            key: 'total_reflorested_and_planted',
+            width: '12,5%',
+            sorter: (a: AreaType, b: AreaType) => a.total_reflorested_and_planted- b.total_reflorested_and_planted,
+        },
+        {
+            title: 'UF',
+            dataIndex: 'uf',
+            key: 'uf',
+            width: '10%',
+        }
+      ];
+
     // BREADCRUMB
     const listBreadcrumb = [
         {
@@ -542,7 +596,14 @@ const Dashboard: React.FC = () => {
                     />
             </GridContainerVertical>
             <Button id="filter" text="Aplicar Filtros" type="button" onClick={() => handleFilter()} />
-            
+            <h2>Áreas Reflorestadas</h2>
+                    <StyledTable
+                        columns={columns}
+                        dataSource={reflorested}  
+                        rowKey="area_name" 
+                        pagination={{ pageSize: 10 }}
+                        scroll={{ x: 1000, y: 500 }} 
+                    />
             {allChartsOptions.length > 0 && <ChartsContainer charts={allChartsOptions} />}
             
         </Screen>
