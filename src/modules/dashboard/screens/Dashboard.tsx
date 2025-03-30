@@ -24,7 +24,7 @@ import { TreeHealth } from "../../../shared/types/treeHealth";
 import { SurvivalRateBySoil } from "../../../shared/types/SurvivalRateBySoil";
 import { Serie } from "../../../shared/types/ReforestedByUf";
 import { SoilType } from "../../../shared/types/SoilType";
-
+import { PlantedSpecieType } from "../../../shared/types/PlantedSpecieType";
 
 const Dashboard: React.FC = () => {
     const { request } = useRequests();
@@ -40,6 +40,7 @@ const Dashboard: React.FC = () => {
     const [survivalBySoil, setSurvivalBySoil] = useState<SurvivalRateBySoil[]>([]);
     const [treeHealth, setTreeHealth] = useState<TreeHealth | null>(null);
     const [soil, setSoilInfo] = useState<SoilType[]>([]);
+    const [planted, setPlantedInfo] = useState<PlantedSpecieType[]>([]);
 
     const [selectedArea, setSelectedArea] = useState<string | null>(null);
     const [areaNames, setAreasNames] = useState<AreaListType[]>([]);
@@ -57,6 +58,7 @@ const Dashboard: React.FC = () => {
     const [chartReflorestedOptions, setChartReflorestedOptions] = useState({});
     const [chartReforestedByUfOptions, setChartReforestedByUfOptions] = useState({});
     const [chartSoilOptions, setChartSoilOptions] = useState({});
+    const [chartPlantedOptions, setChartPlantedOptions] = useState({});
 
     // EVENTS
     useEffect(() => {
@@ -71,6 +73,7 @@ const Dashboard: React.FC = () => {
                     request(`${URL_AREA}/reflorested-area`, MethodsEnum.GET, setAreaInfo),
                     request(`${URL_AREA_INFORMATION}/reforested-area-summary`, MethodsEnum.GET, setReforestedByUf),
                     request(`${URL_AREA_INFORMATION}/soil`, MethodsEnum.GET, setSoilInfo),
+                    request(`${URL_AREA}/planted-species`, MethodsEnum.GET, setPlantedInfo),
                 ]);
             } catch (error) {
                 setNotification(String(error), NotificationEnum.ERROR);
@@ -90,6 +93,7 @@ const Dashboard: React.FC = () => {
         if (Object.keys(chartReflorestedOptions).length > 0) arrayCharts.push({ options: chartReflorestedOptions, title: "Comparativo: Área Inicial e Recuperada", fraction: 2 });
         if (Object.keys(chartReforestedByUfOptions).length > 0) arrayCharts.push({ options: chartReforestedByUfOptions, title: "Área Reflorestada - Tipo de solo/Técnica de plantio", fraction: 1 });
         if (Object.keys(chartSoilOptions).length > 0) arrayCharts.push({ options: chartSoilOptions, title: "Índice de Fertilidade do Solo", fraction: 2 });
+        if (Object.keys(chartPlantedOptions).length > 0) arrayCharts.push({ options: chartPlantedOptions, title: "Espécies Plantadas", fraction: 2 });
         if (arrayCharts.length > 0) {
             setAllChartsOptions([]);
             arrayCharts.forEach((chart) => {
@@ -106,7 +110,8 @@ const Dashboard: React.FC = () => {
             chartSurvivalBySoilOptions,
             treeHealthOptions,
             chartReflorestedOptions,
-            chartReforestedByUfOptions
+            chartReforestedByUfOptions,
+            chartPlantedOptions
         ]);
 
     useEffect(() => {
@@ -358,7 +363,7 @@ const Dashboard: React.FC = () => {
         });
     }, [reforestedByUf, chartReforestedByUfType]);
 
-    useEffect(() => {
+    /*useEffect(() => {
         if (soil.length > 0) {
             const measurementDates = Array.from(new Set(soil.map((so) => so.measurement_date)));
             const fertilizations = Array.from(new Set(soil.map((so) => so.fertilization)));
@@ -408,8 +413,53 @@ const Dashboard: React.FC = () => {
                 })),
             });
         }
-    }, [soil]);
+    }, [soil]);*/
 
+    useEffect(() => {
+        if (planted.length > 0) {
+            const month = planted.map((pl) => pl.created_on_month);
+            const treePlanted = planted.map((pl) => pl.number_of_trees_planted);
+            const plantedSpecies = planted.map((pl) => pl.planted_species);
+    
+            const seriesData = [...new Set(plantedSpecies)].map((species) => ({
+                name: species, 
+                type: 'bar',
+                barWidth: '40%',
+                data: month.map((_, i) => planted[i].planted_species === species ? treePlanted[i] : 0),  
+                itemStyle: {
+                    color: '#49F054',  
+                    borderRadius: [8, 8, 0, 0]
+                },
+            }));
+    
+            setChartPlantedOptions({
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    top: '10%',
+                    containLabel: true
+                },
+                xAxis: [{
+                    type: 'category',
+                    data: month,
+                    axisTick: { alignWithLabel: true },
+                }],
+                yAxis: [{ type: 'value' }],
+                legend: {
+                    data: [...new Set(plantedSpecies)],  
+                    top: '5%',
+                    left: 'center',
+                },
+                series: seriesData  
+            });
+        }
+    }, [planted]);
+    
     // TABLE
     const columns: TableColumnsType<AreaType> = [
         {
