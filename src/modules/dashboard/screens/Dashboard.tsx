@@ -30,6 +30,7 @@ import { brazilStates } from "../../../shared/constants/brazilStates";
 import { MarginTitle } from "../../../shared/components/styles/marginTitle.styled";
 import { GridContainerVertical } from "../../../shared/components/styles/gridContainer.style";
 import { formatNumberWithThousandSeparator, formatToMillion } from "../../../shared/functions/utils/number";
+import TreeCountCard from "../../../shared/components/card/TreeCountCard";
 
 
 const Dashboard: React.FC = () => {
@@ -55,6 +56,9 @@ const Dashboard: React.FC = () => {
     const [selectedUf, setSelectedUf] = useState<string>();
     const [selectedYear, setSelectedYear] = useState<string | null>(null);
     const [fundings, setFundings] = useState<FundingData | null>(null);
+    const [speciesTrees, setSpeciesTrees] = useState<string[]>([]);
+    const [specieTreeSelected, setSpecieTreeSelected] = useState<string>();
+    const [totalPlantedTrees, setTotalPlantedtrees] = useState<{'total_planted_trees': number}>({'total_planted_trees': 0});
 
     const { RangePicker } = DatePicker;
 
@@ -83,6 +87,8 @@ const Dashboard: React.FC = () => {
                     request(`${URL_AREA}/planted-species`, MethodsEnum.GET, setPlantedInfo),
                     request(`${URL_AREA}/planting-techniques`, MethodsEnum.GET, setPlantingInfo),
                     request(`${URL_AREA_INFORMATION}/funding_by_uf_year`, MethodsEnum.GET, setFundings),
+                    request(`${URL_AREA_INFORMATION}/species-trees/list`, MethodsEnum.GET, setSpeciesTrees),
+                    request(`${URL_AREA_INFORMATION}/total-planted-trees`, MethodsEnum.GET, setTotalPlantedtrees)
                 ]);
             } catch (error) {
                 setNotification(String(error), NotificationEnum.ERROR);
@@ -647,17 +653,30 @@ const Dashboard: React.FC = () => {
 
     // UTILS
     const handleFilter = async () => {
-        if (startDate && endDate) {
+        try{
             setLoading(true)
-            await Promise.all([
-                request(`${URL_AREA_INFORMATION}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setCO2Info),
-                request(`${URL_AREA_INFORMATION_TREE}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setTreeInfo),
-                request(`${URL_AREA_INFORMATION}/soil?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setSoilInfo),
-                request(`${URL_AREA}/planted-species?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setPlantedInfo),
-                request(`${URL_AREA_INFORMATION}/funding_by_uf_year?uf=${selectedUf}&year=${selectedYear}`, MethodsEnum.GET, setFundings)
-            ]).finally(() => setLoading(false))
-        } else {
-            setNotification('Definir Data Inicial e Final!', NotificationEnum.WARNING)
+            if (startDate && endDate) {
+                await Promise.all([
+                    request(`${URL_AREA_INFORMATION}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setCO2Info),
+                    request(`${URL_AREA_INFORMATION_TREE}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setTreeInfo),
+                    request(`${URL_AREA_INFORMATION}/soil?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setSoilInfo),
+                    request(`${URL_AREA}/planted-species?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setPlantedInfo),
+                    request(`${URL_AREA_INFORMATION}/funding_by_uf_year?uf=${selectedUf}&year=${selectedYear}`, MethodsEnum.GET, setFundings),
+                    request(`${URL_AREA_INFORMATION}/total-planted-trees?species=${specieTreeSelected}`, MethodsEnum.GET, setTotalPlantedtrees)
+                ])
+            }
+            if(selectedUf){
+                await Promise.all([
+                    request(`${URL_AREA_INFORMATION}/funding_by_uf_year?uf=${selectedUf}&year=${selectedYear}`, MethodsEnum.GET, setFundings)
+                ])
+            }
+            if(specieTreeSelected){
+                await Promise.all([
+                    request(`${URL_AREA_INFORMATION}/total-planted-trees?species=${specieTreeSelected}`, MethodsEnum.GET, setTotalPlantedtrees)
+                ])
+            }
+        }finally{
+            setLoading(false)
         }
     }
 
@@ -683,9 +702,15 @@ const Dashboard: React.FC = () => {
         setEndDate(currentEndDate);
     }
 
+    const handleDefineSpecieTree = (value: string) => {
+        setSpecieTreeSelected(value)
+    }
+
     return (
         <Screen listBreadcrumb={listBreadcrumb}>
             {isLoading && <FirstScreen />}
+            <h1>Dashboard Geral</h1>
+            <h3>Filtros</h3>
             <BoxButtons>
                 <RangePicker format="DD/MM/YYYY" onChange={(event) => handleDefineDatesFilter(event)} style={{ margin: '0 1em 0 0' }} />
                 <Select value={selectedArea}
@@ -696,7 +721,7 @@ const Dashboard: React.FC = () => {
             </BoxButtons>
             <GridContainerVertical>
                 <MarginTitle>
-                    Estado Específico
+                    Demais Filtros
                 </MarginTitle>
 
                 <Select value={selectedUf}
@@ -704,6 +729,11 @@ const Dashboard: React.FC = () => {
                     style={{ width: 200, margin: '1em' }}
                     options={brazilStates.map((uf) => ({ value: uf.value, label: uf.label }))}
                     placeholder="Estado" />
+                <Select value={specieTreeSelected}
+                    onChange={(st) => handleDefineSpecieTree(st)}
+                    style={{ width: 200, margin: '1em' }}
+                    options={speciesTrees.map((st) => ({ value: st, label: st }))}
+                    placeholder="Espécie de Arvore" />
                 {/* <Select value={selectedYear}
                     onChange={(year) => setSelectedYear(year)}
                     style={{ width: 200, margin: '1em' }}
@@ -724,6 +754,10 @@ const Dashboard: React.FC = () => {
                         scroll={{ x: 1000, y: 500 }} />
                 </>
             )}
+
+            <div style={{ padding: '24px' }}>
+                <TreeCountCard count={totalPlantedTrees.total_planted_trees} />
+            </div>
 
             <ChartContainer gridTemplateColumns="repeat(5, 1fr)" gridTemplateRows="repeat(auto-fit, minmax(300px, 1fr))">
                 
