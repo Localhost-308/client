@@ -10,7 +10,7 @@ import Select from "../../../shared/components/inputs/select/Select";
 import ChartContainer from "../../../shared/components/charts/ChartContainer";
 import ChartGridItem from "../../../shared/components/charts/ChartGridItem";
 import { useRequests } from "../../../shared/hooks/useRequests";
-import { URL_AREA_INFORMATION, URL_AREA_INFORMATION_TREE, URL_AREA } from "../../../shared/constants/urls";
+import { URL_AREA_INFORMATION, URL_AREA_INFORMATION_TREE, URL_AREA, URL_THREATS } from "../../../shared/constants/urls";
 import { MethodsEnum } from "../../../shared/enums/methods.enum";
 import { useGlobalReducer } from "../../../store/reducers/globalReducer/useGlobalReducer";
 import { NotificationEnum } from "../../../shared/types/NotificationType";
@@ -31,7 +31,8 @@ import { MarginTitle } from "../../../shared/components/styles/marginTitle.style
 import { GridContainerVertical } from "../../../shared/components/styles/gridContainer.style";
 import { formatNumberWithThousandSeparator, formatToMillion } from "../../../shared/functions/utils/number";
 import TreeCountCard from "../../../shared/components/card/TreeCountCard";
-
+import DeforestationCard from "../../../shared/components/card/DeforestationCard";
+import { DeforestationDataType } from "../../../shared/types/DeforestationDataType";
 
 const Dashboard: React.FC = () => {
     const { request } = useRequests();
@@ -59,6 +60,7 @@ const Dashboard: React.FC = () => {
     const [speciesTrees, setSpeciesTrees] = useState<string[]>([]);
     const [specieTreeSelected, setSpecieTreeSelected] = useState<string>();
     const [totalPlantedTrees, setTotalPlantedtrees] = useState<{'total_planted_trees': number}>({'total_planted_trees': 0});
+    const [deforestationData, setDeforestationData] = useState<DeforestationDataType>()
 
     const { RangePicker } = DatePicker;
 
@@ -662,12 +664,14 @@ const Dashboard: React.FC = () => {
                     request(`${URL_AREA_INFORMATION}/soil?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setSoilInfo),
                     request(`${URL_AREA}/planted-species?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setPlantedInfo),
                     request(`${URL_AREA_INFORMATION}/funding_by_uf_year?uf=${selectedUf}&year=${selectedYear}`, MethodsEnum.GET, setFundings),
-                    request(`${URL_AREA_INFORMATION}/total-planted-trees?species=${specieTreeSelected}`, MethodsEnum.GET, setTotalPlantedtrees)
+                    request(`${URL_AREA_INFORMATION}/total-planted-trees?species=${specieTreeSelected}`, MethodsEnum.GET, setTotalPlantedtrees),
+                    
                 ])
             }
             if(selectedUf){
                 await Promise.all([
-                    request(`${URL_AREA_INFORMATION}/funding_by_uf_year?uf=${selectedUf}&year=${selectedYear}`, MethodsEnum.GET, setFundings)
+                    request(`${URL_AREA_INFORMATION}/funding_by_uf_year?uf=${selectedUf}&year=${selectedYear}`, MethodsEnum.GET, setFundings),
+                    request(`${URL_THREATS}?uf=${selectedUf}`, MethodsEnum.GET, setDeforestationData)
                 ])
             }
             if(specieTreeSelected){
@@ -754,8 +758,12 @@ const Dashboard: React.FC = () => {
                         scroll={{ x: 1000, y: 500 }} />
                 </>
             )}
-
-            <div style={{ padding: '24px' }}>
+            <div style={{ display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+                    gap: '20px',
+                    padding: '20px',
+                    width: '100%' }}>
+                {deforestationData && <DeforestationCard data={deforestationData} />}
                 <TreeCountCard count={totalPlantedTrees.total_planted_trees} />
             </div>
 
