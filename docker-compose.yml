@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    image: local/client:dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - 5174:5173
+    command: npm run dev
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    restart: always

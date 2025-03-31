@@ -1,0 +1,28 @@
+:root {
+    --blue: #216FAA;
+    --beige: #F4F1E9;
+    --green: #81B04C;
+    --black: #000000;
+    --gray: #4D4D4D;
+}
+
+@font-face {
+    font-family: "FSP DEMO - Modica SemiBold";
+    src: url("../public/fonts/modica-semibold.eot");
+    src: url("../public/fonts/modica-semibold.eot?#iefix") format("embedded-opentype"),
+         url("../public/fonts/modica-semibold.woff2") format("woff2"),
+         url("../public/fonts/modica-semibold.woff") format("woff"),
+         url("../public/fonts/modica-semibold.ttf") format("truetype"),
+         url("../public/fonts/modica-semibold.svg#FSP DEMO - Modica SemiBold") format("svg");
+
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+body {
+    margin: 0px;
+    font-family: 'FontSpring Demo Modica', sans-serif;
+    color: var(--gray);
+    background-color: #EFF2F5;
+}
