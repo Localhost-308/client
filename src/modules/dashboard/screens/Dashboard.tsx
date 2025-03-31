@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
     const [soil, setSoilInfo] = useState<SoilType[]>([]);
     const [planted, setPlantedInfo] = useState<PlantedSpecieType[]>([]);
     const [planting, setPlantingInfo] = useState<PlantingTechniqueType[]>([]);
-    const [selectedArea, setSelectedArea] = useState<string | null>(null);
+    const [selectedArea, setSelectedArea] = useState<string>();
     const [areaNames, setAreasNames] = useState<AreaListType[]>([]);
     const [reflorested, setAreaInfo] = useState<AreaType[]>([]);
     const [reforestedByUf, setReforestedByUf] = useState<any>([]);
@@ -662,10 +662,7 @@ const Dashboard: React.FC = () => {
                     request(`${URL_AREA_INFORMATION}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setCO2Info),
                     request(`${URL_AREA_INFORMATION_TREE}?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setTreeInfo),
                     request(`${URL_AREA_INFORMATION}/soil?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setSoilInfo),
-                    request(`${URL_AREA}/planted-species?start_date=${startDate}&end_date=${endDate}`, MethodsEnum.GET, setPlantedInfo),
-                    request(`${URL_AREA_INFORMATION}/funding_by_uf_year?uf=${selectedUf}&year=${selectedYear}`, MethodsEnum.GET, setFundings),
-                    request(`${URL_AREA_INFORMATION}/total-planted-trees?species=${specieTreeSelected}`, MethodsEnum.GET, setTotalPlantedtrees),
-                    
+                    request(`${URL_AREA_INFORMATION}/funding_by_uf_year?uf=${selectedUf}&year=${selectedYear}`, MethodsEnum.GET, setFundings)
                 ])
             }
             if(selectedUf){
@@ -689,7 +686,6 @@ const Dashboard: React.FC = () => {
             await Promise.all([
                 request(`${URL_AREA_INFORMATION_TREE}?area_id=${areaId}`, MethodsEnum.GET, setTreeInfo),
                 request(`${URL_AREA}/reflorested-area?area_id=${areaId}`, MethodsEnum.GET, setAreaInfo),
-                request(`${URL_AREA_INFORMATION}/soil-area?area_id=${areaId}`, MethodsEnum.GET, setSoilInfo),
                 request(`${URL_AREA}/planting-techniques?area_id=${areaId}`, MethodsEnum.GET, setPlantingInfo)
             ]);
         } catch (error) {

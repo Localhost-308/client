@@ -17,7 +17,7 @@ const TreeCountCard: React.FC<TreeCountCardProps> = ({ count }) => {
         
         <Statistic
           title="Quantidade de Árvores Plantadas"
-          value={(count/1000000).toFixed(1)}
+          value={count > 0 ? (count/1000000).toFixed(1) : 0}
           valueStyle={{ color: '#52c41a', fontSize: '23px' }}
           prefix={<span style={{ fontSize: '17px' }}>🌱</span>}
           suffix={
