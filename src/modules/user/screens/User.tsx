@@ -31,12 +31,6 @@ const columns: ColumnsType<UserType> = [
         render: (text) => <p>{text}</p>,
     },
     {
-        title: 'UF',
-        dataIndex: 'uf',
-        key: 'uf',
-        render: (text) => <p>{text}</p>,
-    },
-    {
         title: 'Criado em',
         dataIndex: 'created_on',
         key: 'created_on',
