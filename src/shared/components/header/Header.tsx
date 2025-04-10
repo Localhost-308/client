@@ -12,7 +12,8 @@ import { DashboardOutlined,
     UserOutlined, 
     MenuOutlined, 
     SearchOutlined, 
-    FileExcelOutlined} from '@ant-design/icons';
+    FileExcelOutlined,
+    QuestionCircleOutlined} from '@ant-design/icons';
 
 import logo from '../../../../public/kersys.png';
 import icon from '../../../../public/kersys.png';
@@ -84,7 +85,13 @@ const Header = () => {
                 ], 
               }
             ]
-        }
+        },
+        {
+            key: 'external_link',
+            icon: <QuestionCircleOutlined />,
+            label: 'Ajuda',
+            onClick: () => window.open('https://localhost-308.github.io/manual/', '_blank')
+          }
     ];
 
     return (
