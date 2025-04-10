@@ -1,0 +1,22 @@
+theme:
+  name: material
+  palette:
+    primary: green
+  logo: assets/logo.avif
+site_name: Manual do Usuário
+
+nav:
+  - Guia: 
+    - Acesso: guia/acesso/acesso.md
+    - Dashboard: guia/dashboard/dashboard.md
+    - Diagnóstico(IA): guia/diagnostico/diagnostico.md
+    - Dados Pessoais: guia/dados-pessoais/dados-pessoais.md
+  - Dev Team: dev-team/dev-team.md
+  - Sobre: about.md
+
+plugins:
+  - search:
+      indexing: 'full'
+  - with-pdf
+
+use_directory_urls: false
