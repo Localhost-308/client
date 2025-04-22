@@ -13,7 +13,9 @@ import { DashboardOutlined,
     MenuOutlined, 
     SearchOutlined, 
     FileExcelOutlined,
-    QuestionCircleOutlined} from '@ant-design/icons';
+    EnvironmentOutlined,
+    QuestionCircleOutlined,
+} from '@ant-design/icons';
 
 import logo from '../../../../public/kersys.png';
 import icon from '../../../../public/kersys.png';
@@ -28,6 +30,7 @@ import { UserRoutesEnum } from '../../../modules/user/routes';
 import { ContainerLogoName, NameCompany } from '../menu/menu.style';
 import { useWindowSize } from '../../hooks/useWindowSize';
 import { ImportCSVRoutesEnum } from '../../../modules/importCSV/routes';
+import { SearchAreaRoutesEnum } from '../../../modules/searchArea/routes';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -65,6 +68,12 @@ const Header = () => {
           label: 'Dashboard Geral',
           onClick: () => navigate(DashboardRoutesEnum.DASHBOARD)
         },
+        {
+            key: 'search_area',
+            icon: <EnvironmentOutlined />,
+            label: 'Pesquisa Áreas',
+            onClick: () => navigate(SearchAreaRoutesEnum.SEARCH_AREA)
+          },
         {
             key: 'import_key',
             icon: <FileExcelOutlined />,
