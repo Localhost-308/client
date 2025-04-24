@@ -12,7 +12,9 @@ import Button from "../../../shared/components/buttons/button/Button";
 
 const TYPE_DATA_OPTIONS: any[] = [
     {value: 'csv_sql', label: 'Dados de Plantação'},
-    {value: 'csv_nosql', label: 'Dados de Logs'}
+    {value: 'csv_nosql', label: 'Dados de Logs'},
+    {value: 'inmet', label: 'Dados do INMET'},
+    {value: 'cities_coordinates', label: 'Dados de Coordenadas'}
 ]
 
 const ImportCSV = () => {
