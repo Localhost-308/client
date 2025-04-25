@@ -1,29 +1,24 @@
 import React, { memo, useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import Screen from "../../../shared/components/screen/Screen";
-import Button from "../../../shared/components/buttons/button/Button";
-import Input from "../../../shared/components/inputs/input/Input";
 import { URL_AREA } from "../../../shared/constants/urls";
 import { useRequests } from "../../../shared/hooks/useRequests";
 import { AreaPoint } from "../../../shared/types/AreaPointType";
 import { MethodsEnum } from "../../../shared/enums/methods.enum";
 import AreaCard from "../../../shared/components/card/AreaCard";
 import styles from "../styles/SearchArea.module.css";
+import Search from "antd/es/input/Search";
 
 const SearchArea: React.FC = () => {
   const { request } = useRequests();
-  const [searchName, setSearchName] = useState<string>();
   const [areas, setAreas] = useState<AreaPoint[]>([]);
   const [markedArea, setMarkedArea] = useState<AreaPoint>();
   const [adjustedAreas, setAdjustedAreas] = useState<AreaPoint[]>([]);
-  const handleSearchName = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchName(event.target.value);
-  };
 
-  async function handleSearch() {
-    if (searchName) {
+  async function handleSearch(name: string) {
+    if (name) {
       await request(
-        `${URL_AREA}/search?name=${searchName}`,
+        `${URL_AREA}/search?name=${name}`,
         MethodsEnum.GET,
         setAreas
       );
@@ -39,28 +34,13 @@ const SearchArea: React.FC = () => {
   return (
     <Screen>
       <div className={styles.container}>
-        <div className={styles.searchBar}>
-          <Input
-            id="input"
-            type="text"
-            label="Área / Empresa / Cidade"
-            value={searchName}
-            onChange={handleSearchName}
-          />
-          <Button
-            id="button"
-            text="Buscar"
-            type="button"
-            onClick={() => handleSearch()}
-          />
-        </div>
-
         <div className={styles.mainContent}>
           <div className={styles.sidebar}>
+          <Search placeholder="Pesquisar (cidade, empresa ou área)" onSearch={e => handleSearch(e)} enterButton/>
             {markedArea ? (
-              <AreaCard area={markedArea} />
+                <AreaCard area={markedArea} />
             ) : (
-              <p>Selecione uma área no mapa para ver os detalhes</p>
+                <p>Selecione uma área no mapa para ver os detalhes</p>
             )}
           </div>
 
