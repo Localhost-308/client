@@ -14,7 +14,8 @@ export const useInsertUsers = () => {
     const [userInsert, setUserInsert] = useState<InsertUser>({
         first_name: "",
         last_name: "",
-        email: ""
+        email: "",
+        role:""
     });
 
     const handleInsert = (e: React.FormEvent, setLoading: any, resetForm: any) => {
