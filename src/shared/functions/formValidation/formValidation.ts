@@ -15,7 +15,7 @@ export const validateUser = (user: InsertUser): Partial<InsertUser> => {
 
 export const validateImportFileData = (obj: ImportFileData): Partial<ImportFileData> => {
     const errors: Partial<ImportFileData> = {};
-    let typesPermited: string[] = ['csv_sql', 'csv_nosql']
+    let typesPermited: string[] = ['csv_sql', 'csv_nosql', 'inmet', 'cities_coordinates']
     if(obj.csv == undefined || obj.csv == '') errors.csv = 'CSV não definido!';
     if(obj.typeData == undefined || obj.typeData == '') errors.typeData = 'Tipo não definido!';
     if(obj.typeData !== undefined && !typesPermited.includes(obj.typeData)) errors.typeData = 'Tipo não está padronizado!';
