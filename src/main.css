@@ -20,9 +20,30 @@
     font-display: swap;
 }
 
+@font-face {
+    font-family: 'Material Symbols Outlined';
+    src: url('/fonts/MaterialSymbolsOutlined.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+
 body {
     margin: 0px;
     font-family: 'FontSpring Demo Modica', sans-serif;
     color: var(--gray);
     background-color: #EFF2F5;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
 }
