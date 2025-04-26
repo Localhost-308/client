@@ -31,10 +31,10 @@ const columns: ColumnsType<UserType> = [
         render: (text) => <p>{text}</p>,
     },
     {
-        title: 'Criado em',
-        dataIndex: 'created_on',
-        key: 'created_on',
-        render: (_,user) => <p>{formatDateTime(user.created_on)}</p>,
+        title: 'Cargo',
+        dataIndex: 'role',
+        key: 'role',
+        render: (_,user) => <p>{`${user.role} ${user.role}`}</p>,
     }
 ];
 
@@ -68,14 +68,8 @@ const User = () => {
     const [ filterColumn, setFilterColumn ] = useState<string>('name');
     const itemsFiltered = search.length > 0 ? users.filter((obj) => {
         const fieldValue = (obj as any)[filterColumn];
-        if (filterColumn === 'created_on'){
-            return formatDate(fieldValue).includes(search);
-        }
         if (filterColumn === 'name'){
             return `${obj.first_name} ${obj.last_name}`.toLowerCase().includes(search.toLowerCase());
-        }
-        if (filterColumn === 'uf'){
-            return fieldValue.toLowerCase().includes(search.toLowerCase());
         }
         if (filterColumn === 'email') {
             return fieldValue.includes(search);
@@ -91,8 +85,7 @@ const User = () => {
                     <Select defaultValue="name" onChange={e => setFilterColumn(e)} style={{ width: 180, marginBottom: '8px' }}>
                         <Option value="name">Nome</Option>
                         <Option value="email">Email</Option>
-                        <Option value="uf">UF</Option>
-                        <Option value="created_on">Criado em</Option>
+                        <Option value="role">Cargo</Option>
                     </Select>
                     <Search placeholder="Pesquisar" onSearch={e => setSearch(e)} enterButton/>
                 </LimitedContainer>
