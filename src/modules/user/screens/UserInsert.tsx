@@ -101,19 +101,30 @@ const UserInsert = () => {
                                     onChange={(event) => onChange(event, 'password')}
                                     style={{ width: '100%', height: '40px', fontSize: '14px' }}
                                 />
+                                {errors.password && <p style={{ color: 'red', fontWeight: 500 }}>{errors.password}</p>}
                             </div>
                             <div style={{ flex: 1 }}>
-                                <div style={{ marginBottom: 4, fontWeight: 500, fontSize: '18px', marginLeft: '40px' }}>Cargo *</div>
+                            <div style={{ marginBottom: 4, fontWeight: 500, fontSize: '18px', marginLeft: '40px' }}>
+                                Cargo *
+                            </div>
                                 <Select
-                                    style={{ width: '100%', height: '44px', fontSize: '14px', marginLeft: '30px' }} 
+                                    style={{
+                                        width: '100%',
+                                        height: '44px',
+                                        fontSize: '14px',
+                                        marginLeft: '30px',
+                                    }}
                                     value={userInsert.cargo}
                                     onChange={(value) => setUserInsert(prev => ({ ...prev, cargo: value }))}
                                     options={roleOptions}
                                 />
-                                {errors.cargo && <p style={{ color: 'red', fontWeight: 500 }}>{errors.cargo}</p>}
+                                {errors.cargo && (
+                                    <p style={{ color: 'red', fontWeight: 500, marginLeft: '30px' }}>
+                                        {errors.cargo}
+                                    </p>
+                                )}
                             </div>
                         </div>
-
                         {/* Botão de submissão */}
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
                             <LimitedContainer width={200} style={{ position: 'absolute', bottom: 50, right: 50 }}>
