@@ -30,37 +30,19 @@ export const useImportFileData = () => {
         if (importFile.csv instanceof Blob) {
             formData.append('file.csv', importFile.csv);
         }
-        if(importFile.typeData == 'csv_sql'){
-            await axios.post(`${URL_IMPORT}/${importFile.typeData}`, formData,{
-            headers:{
-                'Content-Type': 'multipart/form-data', 
-                'Authorization': `Bearer ${getItemStorage(AUTHORIZATION_KEY)}`
-            }})
-            .then(() => {
-                setLoading(false);
-                setNotification('Importado com Sucesso', NotificationEnum.SUCCESS);
-            })
-            .catch((error: Error) => {
-                setLoading(false);
-                setNotification(error.message, NotificationEnum.ERROR);
-            });
-        }else if (importFile.typeData == 'csv_nosql'){
-            await axios.post(`${URL_IMPORT}/${importFile.typeData}`, formData,{
-            headers:{
-                'Content-Type': 'multipart/form-data', 
-                'Authorization': `Bearer ${getItemStorage(AUTHORIZATION_KEY)}`
-            }})
-            .then(() => {
-                setLoading(false);
-                setNotification('Importado com Sucesso', NotificationEnum.SUCCESS);
-            })
-            .catch((error: Error) => {
-                setLoading(false);
-                setNotification(error.message, NotificationEnum.ERROR);
-            });
-        }else{
-            window.alert('Tipo da data não deifnido corretamente!')
-        }
+        await axios.post(`${URL_IMPORT}/${importFile.typeData}`, formData,{
+        headers:{
+            'Content-Type': 'multipart/form-data', 
+            'Authorization': `Bearer ${getItemStorage(AUTHORIZATION_KEY)}`
+        }})
+        .then(() => {
+            setLoading(false);
+            setNotification('Importado com Sucesso', NotificationEnum.SUCCESS);
+        })
+        .catch((error: Error) => {
+            setLoading(false);
+            setNotification(error.message, NotificationEnum.ERROR);
+        });
     }
 
     // INPUT EVENT
