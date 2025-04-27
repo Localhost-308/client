@@ -11,70 +11,70 @@ import { useGlobalReducer } from "../../store/reducers/globalReducer/useGlobalRe
 import { NotificationEnum } from "../types/NotificationType";
 import { DashboardRoutesEnum } from "../../modules/dashboard/routes";
 
-
 export const useRequests = () => {
-    const [loading] = useState(false);
-    const { setNotification, setUser } = useGlobalReducer();
-    useAuthInterceptor();
+  const [loading] = useState(false);
+  const { setNotification, setUser } = useGlobalReducer();
+  useAuthInterceptor();
 
-    const request = async <T>(
-        url: string, 
-        method: MethodType, 
-        saveGlobal?: (object: T) => void,
-        body?: unknown,
-    ):Promise<T | undefined> => {
-        const response: T | undefined = await ConnectionAPI.connect<T>(url, method, body)
-            .then((data) => {
-                if(saveGlobal){
-                    saveGlobal(data);
-                }
-                return data;
-            }).catch((error: Error) => {
-                if(error.message.includes('is not allowed to trigger')){
-                    setNotification('Usuário não tem permissão!', NotificationEnum.ERROR);
-                }
-                else if(error.message.includes('not allowed')){
-                    setNotification('Usuário não tem permissão!', NotificationEnum.ERROR);
-                }
-                else setNotification(error.message, NotificationEnum.ERROR);
-                return undefined;
-            });
-        return response;
-    }
+  const request = async <T>(
+    url: string,
+    method: MethodType,
+    saveGlobal?: (object: T) => void,
+    body?: unknown
+  ): Promise<T | undefined> => {
+    const response: T | undefined = await ConnectionAPI.connect<T>(url, method, body)
+      .then((data) => {
+        if (saveGlobal) {
+          saveGlobal(data);
+        }
+        return data;
+      })
+      .catch((error: Error) => {
+        if (error.message.includes('is not allowed to trigger') || error.message.includes('not allowed')) {
+          setNotification('Usuário não tem permissão!', NotificationEnum.ERROR);
+        } else {
+          setNotification(error.message, NotificationEnum.ERROR);
+        }
+        return undefined;
+      });
+    return response;
+  };
 
-    const authRequest = async (body: unknown, navigate: ReturnType<typeof useNavigate>): Promise<void>  => {
-        await connectionAPIPost<AuthType>(URL_AUTH, body)
-        .then((data) => {
-            setUser(data.user);
-            setUserData(data.user);
-            setAuthorizationToken(data.access_token);
-            navigate(DashboardRoutesEnum.DASHBOARD);
-        })
-        .catch((error: Error) => {
-            console.log(error.message);
-            setNotification(ERROR_AUTH, NotificationEnum.ERROR);
-            return undefined;
-        });
+  const authRequest = async (
+    body: unknown,
+    navigate: ReturnType<typeof useNavigate>
+  ): Promise<AuthType | undefined> => {
+    try {
+      const data = await connectionAPIPost<AuthType>(URL_AUTH, body);
+      setUser(data.user);
+      setUserData(data.user);
+      setAuthorizationToken(data.access_token);
+      navigate(DashboardRoutesEnum.DASHBOARD);
+      return data;
+    } catch (error) {
+      setNotification(ERROR_AUTH, NotificationEnum.ERROR);
+      return undefined;
     }
+  };
 
-    const authRequestLink = async (body: unknown): Promise<void>  => {
-        await connectionAPIPost<AuthType>(`${URL_AUTH}/link`, body)
-        .then((data) => {
-            setUser(data.user);
-            setUserData(data.user);
-            setAuthorizationToken(data.access_token);
-        })
-        .catch((error: Error) => {
-            console.log(error.message);
-            setNotification(ERROR_AUTH, NotificationEnum.ERROR);
-            return undefined;
-        });
-    }
+  const authRequestLink = async (body: unknown): Promise<void> => {
+    await connectionAPIPost<AuthType>(`${URL_AUTH}/link`, body)
+      .then((data) => {
+        setUser(data.user);
+        setUserData(data.user);
+        setAuthorizationToken(data.access_token);
+      })
+      .catch((error: Error) => {
+        console.log(error.message);
+        setNotification(ERROR_AUTH, NotificationEnum.ERROR);
+        return undefined;
+      });
+  };
 
-    return {
-        loading,
-        request,
-        authRequest,
-        authRequestLink
-    }
-}
+  return {
+    loading,
+    request,
+    authRequest,
+    authRequestLink
+  };
+};
