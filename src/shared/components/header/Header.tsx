@@ -61,47 +61,59 @@ const Header = () => {
     const showDrawer = () => setDrawerVisible(true);
     const closeDrawer = () => setDrawerVisible(false);
 
+    const permissions = getItemStorage('PERMISSIONS');
+    let isAdmin = false;
+
+    try {
+        const parsed = JSON.parse(permissions || '{}');
+        isAdmin = parsed.cargo === 'ADMIN';
+    } catch {
+        isAdmin = false;
+    }
+
     const itemsHamburger: MenuItem[] = [
         {
-          key: 'dashboard_key',
-          icon: <DashboardOutlined />,
-          label: 'Dashboard Geral',
-          onClick: () => navigate(DashboardRoutesEnum.DASHBOARD)
+            key: 'dashboard_key',
+            icon: <DashboardOutlined />,
+            label: 'Dashboard Geral',
+            onClick: () => navigate(DashboardRoutesEnum.DASHBOARD)
         },
         {
             key: 'search_area',
             icon: <EnvironmentOutlined />,
             label: 'Pesquisa Áreas',
             onClick: () => navigate(SearchAreaRoutesEnum.SEARCH_AREA)
-          },
+        },
         {
             key: 'import_key',
             icon: <FileExcelOutlined />,
             label: 'Importar Dados',
             onClick: () => navigate(ImportCSVRoutesEnum.IMPORT_CSV)
-          },
-        {
+        },
+        ...(isAdmin ? [
+            {
             key: 'consult_insert',
             icon: <SearchOutlined />,
             label: 'Consulta / Cadastro',
             children: [
-              { 
+                {
                 key: 'users_key',
                 label: 'Usuários',
                 children: [
-                    { key: 'user_consult', label: 'Consultar', onClick: () => navigate(UserRoutesEnum.USER)},
-                    { key: 'user_insert', label: 'Cadastrar', onClick: () => navigate(UserRoutesEnum.USER_INSERT)},
-                ], 
-              }
+                    { key: 'user_consult', label: 'Consultar', onClick: () => navigate(UserRoutesEnum.USER) },
+                    { key: 'user_insert', label: 'Cadastrar', onClick: () => navigate(UserRoutesEnum.USER_INSERT) },
+                ],
+                }
             ]
-        },
+            }
+        ] : []),
         {
             key: 'external_link',
             icon: <QuestionCircleOutlined />,
             label: 'Ajuda',
             onClick: () => window.open('https://localhost-308.github.io/manual/', '_blank')
-          }
-    ];
+        }
+        ];
 
     return (
         <>

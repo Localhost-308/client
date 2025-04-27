@@ -7,6 +7,7 @@ import { LimitedContainer } from "../../../shared/components/styles/limited.styl
 import { UserRoutesEnum } from "../routes";
 import { useLoading } from "../../../shared/components/loadingProvider/LoadingProvider";
 import { DashboardRoutesEnum } from "../../dashboard/routes";
+import InputPassword from "../../../shared/components/inputs/inputPasswordAntd/InputPassword";
 
 const Input = lazy(() => import("../../../shared/components/inputs/input/Input"));
 const Screen = lazy(() => import("../../../shared/components/screen/Screen"));
@@ -23,7 +24,7 @@ const UserInsert = () => {
     } = useInsertUsers();
 
     const listBreadcrumb = [
-        { name: 'Requisições Pendentes para Aprovação', navigateTo: DashboardRoutesEnum.DASHBOARD },
+        { name: 'Dashboard', navigateTo: DashboardRoutesEnum.DASHBOARD },
         { name: 'Lista de Usuários', navigateTo: UserRoutesEnum.USER },
         { name: 'Inserir Usuários' }
     ];
@@ -33,13 +34,14 @@ const UserInsert = () => {
             first_name: "",
             last_name: "",
             email: "",
-            role: ""
+            password: "",
+            cargo: ""
         });
     }, [setUserInsert]);
 
     const roleOptions = [
         { label: 'ADMIN', value: 'ADMIN' },
-        { label: 'GESTOR', value: 'GESTOR_AREA' }
+        { label: 'GESTOR_AREA', value: 'GESTOR_AREA' }
     ];
 
     return (
@@ -48,64 +50,76 @@ const UserInsert = () => {
             <Screen listBreadcrumb={listBreadcrumb}>
                 <form onSubmit={(event) => handleInsert(event, setLoading, resetForm)}>
                     <LimitedContainer width={600}>
+                        {/* Linha de cima com 3 campos */}
+                        <div style={{ display: 'flex', gap: 40, marginTop: 50, marginBottom: 100 }}>
+                            <div style={{ flex: 1 }}>
+                                <Input
+                                    onChange={(event) => onChange(event, 'first_name')}
+                                    value={userInsert.first_name}
+                                    label="Nome *"
+                                    placeholder="Ex: João"
+                                    type="text"
+                                    id="first_name"
+                                    style={{ width: '100%', height: '40px', fontSize: '14px' }}  
+                                />
+                                {errors.first_name && <p style={{ color: 'red', fontWeight: 500 }}>{errors.first_name}</p>}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <Input
+                                    onChange={(event) => onChange(event, 'last_name')}
+                                    value={userInsert.last_name}
+                                    label="Sobrenome *"
+                                    placeholder="Ex: Silva"
+                                    type="text"
+                                    id="last_name"
+                                    style={{ width: '100%', height: '40px', fontSize: '14px' }} 
+                                />
+                                {errors.last_name && <p style={{ color: 'red', fontWeight: 500 }}>{errors.last_name}</p>}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <Input
+                                    onChange={(event) => onChange(event, 'email')}
+                                    value={userInsert.email}
+                                    label="Email *"
+                                    placeholder="Ex: joao@gmail.com.br"
+                                    type="text"
+                                    id="email"
+                                    style={{ width: '100%', height: '40px', fontSize: '14px' }} 
+                                />
+                                {errors.email && <p style={{ color: 'red', fontWeight: 500 }}>{errors.email}</p>}
+                            </div>
+                        </div>
 
-                        <div style={{ display: 'flex', gap: 100, marginTop: 50, marginBottom: 70 }}>
+                        {/* Linha de baixo com 2 campos: Senha e Cargo */}
+                        <div style={{ display: 'flex', gap: 40, marginTop: 100, marginBottom: 50 }}>
                         <div style={{ flex: 1 }}>
-                            <Input
-                                onChange={(event) => onChange(event, 'first_name')}
-                                value={userInsert.first_name}
-                                label="Nome *"
-                                placeholder="Ex: João"
-                                type="text"
-                                id="first_name"
-                                style={{ width: '100%', height: '40px', fontSize: '14px' }}  
-                            />
-                            {errors.first_name && <p style={{ color: 'red', fontWeight: 500 }}>{errors.first_name}</p>}
+                                <InputPassword
+                                    label="Senha *"
+                                    type="password"
+                                    id="password"
+                                    value={userInsert.password}
+                                    onChange={(event) => onChange(event, 'password')}
+                                    style={{ width: '100%', height: '40px', fontSize: '14px' }}
+                                />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ marginBottom: 4, fontWeight: 500, fontSize: '18px', marginLeft: '40px' }}>Cargo *</div>
+                                <Select
+                                    style={{ width: '100%', height: '44px', fontSize: '14px', marginLeft: '30px' }} 
+                                    value={userInsert.cargo}
+                                    onChange={(value) => setUserInsert(prev => ({ ...prev, cargo: value }))}
+                                    options={roleOptions}
+                                />
+                                {errors.cargo && <p style={{ color: 'red', fontWeight: 500 }}>{errors.cargo}</p>}
+                            </div>
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <Input
-                                onChange={(event) => onChange(event, 'last_name')}
-                                value={userInsert.last_name}
-                                label="Sobrenome *"
-                                placeholder="Ex: Silva"
-                                type="text"
-                                id="last_name"
-                                style={{ width: '100%', height: '40px', fontSize: '14px' }} 
-                            />
-                            {errors.last_name && <p style={{ color: 'red', fontWeight: 500 }}>{errors.last_name}</p>}
-                        </div>
-                    </div>
 
-                    <div style={{ display: 'flex', gap: 100, marginBottom: 70 }}>
-                        <div style={{ flex: 1 }}>
-                            <Input
-                                onChange={(event) => onChange(event, 'email')}
-                                value={userInsert.email}
-                                label="Email *"
-                                placeholder="Ex: joao@gmail.com.br"
-                                type="text"
-                                id="email"
-                                style={{ width: '100%', height: '40px', fontSize: '14px' }} 
-                            />
-                            {errors.email && <p style={{ color: 'red', fontWeight: 500 }}>{errors.email}</p>}
+                        {/* Botão de submissão */}
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <LimitedContainer width={200} style={{ position: 'absolute', bottom: 50, right: 50 }}>
+                                <Button text="Cadastrar" type="submit" id="insert" color="green" />
+                            </LimitedContainer>
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <div style={{ marginBottom: 4, fontWeight: 500, fontSize: '18px', marginLeft: '10px' }}>Cargo *</div>
-                            <Select
-                                style={{ width: 310, height: '44px', fontSize: '14px' }}  
-                                value={userInsert.role}
-                                onChange={(value) => setUserInsert(prev => ({ ...prev, role: value }))}
-                                options={roleOptions}
-                            />
-                            {errors.role && <p style={{ color: 'red', fontWeight: 500 }}>{errors.role}</p>}
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                        <LimitedContainer width={200} style={{ position: 'absolute', bottom: 50, right: 50 }}>
-                            <Button text="Cadastrar" type="submit" id="insert" color="green" />
-                        </LimitedContainer>
-                    </div>
                     </LimitedContainer>
                 </form>
             </Screen>
