@@ -64,6 +64,16 @@ const Header = () => {
     const showDrawer = () => setDrawerVisible(true);
     const closeDrawer = () => setDrawerVisible(false);
 
+    const permissions = getItemStorage('PERMISSIONS');
+    let isAdmin = false;
+
+    try {
+        const parsed = JSON.parse(permissions || '{}');
+        isAdmin = parsed.cargo === 'ADMIN';
+    } catch {
+        isAdmin = false;
+    }
+
     const itemsHamburger: MenuItem[] = [
         {
             key: 'dashboard_key',
@@ -83,7 +93,8 @@ const Header = () => {
             label: 'Importar Dados',
             onClick: () => navigate(ImportCSVRoutesEnum.IMPORT_CSV)
         },
-        {
+        ...(isAdmin ? [
+            {
             key: 'consult_insert',
             icon: <SearchOutlined />,
             label: 'Consulta / Cadastro',
@@ -97,7 +108,8 @@ const Header = () => {
                     ],
                 }
             ]
-        },
+            }
+        ] : []),
         {
             key: 'predict_key',
             icon: <BulbOutlined />,
@@ -110,7 +122,8 @@ const Header = () => {
             label: 'Ajuda',
             onClick: () => window.open('https://localhost-308.github.io/manual/', '_blank')
         }
-    ];
+  ];
+
 
     return (
         <>
