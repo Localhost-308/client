@@ -7,4 +7,4 @@ export const URL_AREA_INFORMATION_TREE = `${BASE_API_URL}/area-information/tree`
 export const URL_AREA = `${BASE_API_URL}/areas`;
 export const URL_IMPORT =`${BASE_API_URL}/import`;
 export const URL_THREATS = `${BASE_API_URL}/threats`
-
+export const URL_MACHINE_LEARN = `${BASE_API_URL}/machine_learning`

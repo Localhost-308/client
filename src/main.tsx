@@ -5,6 +5,7 @@ import ConfigProvider from 'antd/es/config-provider/index';
 import ptBR from 'antd/es/locale/pt_BR';
 
 import './main.css';
+import 'leaflet/dist/leaflet.css';
 import App from './App';
 import { LoadingProvider } from './shared/components/loadingProvider/LoadingProvider';
 

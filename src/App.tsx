@@ -9,13 +9,17 @@ import { useNotification } from "./shared/hooks/useNotification";
 import { userRoutes } from "./modules/user/routes";
 import { dashboardRoutes } from "./modules/dashboard/routes";
 import { importCSVRoutes } from "./modules/importCSV/routes";
+import { searchAreaRoutes } from "./modules/searchArea/routes";
+import { predictRoutes } from "./modules/insights/routes";
 
 const routes: RouteObject[] = [...loginRoutes];
 const routesLoggedIn: RouteObject[] = [
+  ...predictRoutes,
   ...importCSVRoutes,
   ...dashboardRoutes,
   ...userRoutes,
-  ...firstScreenRoutes
+  ...firstScreenRoutes,
+  ...searchAreaRoutes
 ]
 
 const router: RemixRouter = createBrowserRouter([...routes, ...routesLoggedIn]);

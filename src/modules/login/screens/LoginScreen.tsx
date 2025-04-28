@@ -5,6 +5,8 @@ import '../styles/LoginScreen.module.css';
 import FirstScreen from '../../firstScreen';
 import styles from '../styles/LoginScreen.module.css';
 import { useRequests } from '../../../shared/hooks/useRequests';
+import { setItemStorage } from '../../../shared/functions/connection/storageProxy';
+import { PERMISSIONS, USER_ID, FIRST_NAME, LAST_NAME } from '../../../shared/constants/authorizationConstants';
 import { useLoading } from '../../../shared/components/loadingProvider/LoadingProvider';
 
 const InputAD = lazy(() => import('../../../shared/components/inputs/inputAntd/InputAD'));
@@ -31,11 +33,18 @@ const LoginScreen = () => {
 
     const handleLogin = () => {
         setLoading(true);
-        authRequest({
-            email: email,
-            password: password
-        }, navigate).then(() => setLoading(false));
-    }
+        authRequest({ email, password }, navigate)
+          .then((authData) => {
+            if (authData?.user) {
+              const user = authData.user;
+              setItemStorage(PERMISSIONS, JSON.stringify({ cargo: user.cargo }));
+              setItemStorage(USER_ID, user.id.toString());
+              setItemStorage(FIRST_NAME, user.first_name);
+              setItemStorage(LAST_NAME, user.last_name);
+            }
+        })
+        .finally(() => setLoading(false));
+    };
 
     return (
         <Suspense>
