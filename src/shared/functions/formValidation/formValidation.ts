@@ -2,23 +2,45 @@ import { ImportFileData } from "../../dto/ImportFileData.dto";
 import { InsertUser } from "../../dto/InsertUser.dto";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
 
 export const validateUser = (user: InsertUser): Partial<InsertUser> => {
     const errors: Partial<InsertUser> = {};
 
-    if(user.first_name == '' || user.first_name == undefined || user.first_name.length < 3) errors.first_name = 'Precisa ser preenchido, mínimo 3 digitos';
-    if(user.last_name == '' || user.last_name == undefined || user.last_name.length < 2) errors.last_name = 'Precisa ser preenchido, mínimo 2 digitos';
-    if(user.email == '' || user.email == undefined ||  !emailRegex.test(user.email)) errors.email = 'Precisa preencher, ex:( maria@exemplo.com )';
+    if (!user.first_name || user.first_name.trim().length < 3) {
+        errors.first_name = 'O nome precisa ser preenchido e ter pelo menos 3 caracteres.';
+    }
+
+    if (!user.last_name || user.last_name.trim().length < 2) {
+        errors.last_name = 'O sobrenome precisa ser preenchido e ter pelo menos 2 caracteres.';
+    }
+
+    if (!user.email || !emailRegex.test(user.email)) {
+        errors.email = 'O email é inválido.';
+    }
+
+    if (!user.password || !passwordRegex.test(user.password)) {
+        errors.password = 'A senha deve ter pelo menos 6 caracteres, incluindo uma letra e um número.';
+    }
+
+    if (!user.cargo) {
+        errors.cargo = 'O cargo deve ser selecionado.';
+    }
 
     return errors;
-}
 
-export const validateImportFileData = (obj: ImportFileData): Partial<ImportFileData> => {
+};
+
+export const validateImportFileData = (data: ImportFileData): Partial<ImportFileData> => {
     const errors: Partial<ImportFileData> = {};
-    let typesPermited: string[] = ['csv_sql', 'csv_nosql', 'inmet', 'cities_coordinates']
-    if(obj.csv == undefined || obj.csv == '') errors.csv = 'CSV não definido!';
-    if(obj.typeData == undefined || obj.typeData == '') errors.typeData = 'Tipo não definido!';
-    if(obj.typeData !== undefined && !typesPermited.includes(obj.typeData)) errors.typeData = 'Tipo não está padronizado!';
+
+    if (!data.csv) {
+        errors.csv = 'O arquivo CSV deve ser fornecido.';
+    }
+
+    if (data.typeData && !['csv', 'json'].includes(data.typeData)) {
+        errors.typeData = 'O tipo de dado é inválido. Deve ser "csv".';
+    }
 
     return errors;
-}
+};

@@ -133,7 +133,8 @@ const User = () => {
                 rowKey={(obj) => obj.id}
                 pagination={{
                     pageSize: 10, 
-                    showTotal: (total) => `Total: ${total} ${total === 1 ? 'usuário' : 'usuários'}`,                }}
+                    showTotal: (total) => `Total: ${total} ${total === 1 ? 'usuário' : 'usuários'}`,
+                }}
             />
         </Screen>
     );
