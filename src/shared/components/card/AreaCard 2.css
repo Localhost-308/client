@@ -1,0 +1,26 @@
+.tree-count-card {
+    background: linear-gradient(135deg, #f6ffed 0%, #e6f7ff 100%);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #d9f7be;
+    transition: all 0.3s ease;
+    margin: 20px;
+  }
+  
+  .tree-count-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(82, 196, 26, 0.2);
+  }
+  
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    font-size: 18px;
+  }
+  
+  .tree-icon {
+    font-size: 48px;
+    color: #52c41a;
+  }
