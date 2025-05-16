@@ -105,6 +105,7 @@ const Header = () => {
                     children: [
                         { key: 'user_consult', label: 'Consultar', onClick: () => navigate(UserRoutesEnum.USER) },
                         { key: 'user_insert', label: 'Cadastrar', onClick: () => navigate(UserRoutesEnum.USER_INSERT) },
+                        { key: 'incident_lgpd', label: 'Incidente(LGPD)', onClick: () => navigate(UserRoutesEnum.INCIDENT_LGPD) },
                     ],
                 }
             ]

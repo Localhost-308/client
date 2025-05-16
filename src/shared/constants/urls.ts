@@ -8,3 +8,4 @@ export const URL_AREA = `${BASE_API_URL}/areas`;
 export const URL_IMPORT =`${BASE_API_URL}/import`;
 export const URL_THREATS = `${BASE_API_URL}/threats`
 export const URL_MACHINE_LEARN = `${BASE_API_URL}/machine_learning`
+export const URL_NOTIFY__LGPD_INCIDENT = `${URL_USER}/notify-lgpd-incident`
