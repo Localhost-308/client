@@ -1,5 +1,5 @@
 import { lazy, useEffect, useState } from "react";
-import { Input, Checkbox, DatePicker } from "antd";
+import { Input, Checkbox, DatePicker, Button } from "antd";
 import { DashboardRoutesEnum } from "../../dashboard/routes";
 import { connectionAPIPost } from "../../../shared/functions/connection/connectionAPI";
 import { useGlobalReducer } from "../../../store/reducers/globalReducer/useGlobalReducer";
@@ -10,7 +10,6 @@ import { Modal } from 'antd';
 import FirstScreen from "../../firstScreen";
 
 
-const Button = lazy(() => import('../../../shared/components/buttons/button/Button'));
 const Screen = lazy(() => import('../../../shared/components/screen/Screen'));
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
@@ -22,14 +21,12 @@ const IncidentLgpd = () => {
 
     const natureOfDataOptions = ['Dados Pessoais', 'Dados Sensíveis'];
     const [natureOfDataList ,setNatureOfDataList] = useState<string[]>([]);
-    const [natureOfData, setNatureOfData] = useState<String>('');
-
-    const [startDate, setStartDate] =  useState<String>();
-    const [endDate, setEndDate] = useState<String>();
-
+    const [natureOfData, setNatureOfData] = useState<string>('');
+    const [startDate, setStartDate] =  useState<string>();
+    const [endDate, setEndDate] = useState<string>();
     const [companyName, setCompanyName] = useState<string>();
-
     const [message, setMessage] = useState<string>();
+    const [isSendDisabled, setIsSendDisabled] = useState<boolean>(false);
     
     const onNatureChange = (list: string[]) => {
         setNatureOfDataList(list);
@@ -90,6 +87,7 @@ const IncidentLgpd = () => {
             modal.warning(modalConfig);
         }
     }
+
     useEffect(() => {
         setMessage(
         `
@@ -131,7 +129,8 @@ const IncidentLgpd = () => {
             - Monitoramento de sistemas e logs;
             - Backup e restauração de dados.
         `
-        )
+        );
+
     }, [startDate, endDate, natureOfData, companyName])
 
     // Breadcrumb
@@ -149,7 +148,7 @@ const IncidentLgpd = () => {
         <Screen listBreadcrumb={listBreadcrumb}>
             {contextHolder}
             {isLoading && <FirstScreen />}
-            <div style={{display:"flex", alignItems: "center", flexDirection: "column"}}>
+            <div style={{display:"flex", alignItems: "center", flexDirection: "column", gap:10}}>
                 <h1>Notificação de incidente de Segurança (LGPD)</h1>   
                 <div style={{display: "Flex", flexDirection: "row", gap: 50, width: 1000}}>
                     <div> 
@@ -187,11 +186,13 @@ const IncidentLgpd = () => {
                         variant="filled"
                     />
                 </div>
-                <Button text='ENVIAR' 
-                        type='submit' 
-                        id='send' 
+                <Button style={{width: 200}}
+                        disabled={![startDate, endDate, natureOfData, companyName].every(Boolean)}
+                        type="primary"
                         onClick={() => {handleSubmmit()}}
-                />                  
+                        >
+                    ENVIAR
+                </Button>                  
             </div>
         </Screen>
     );
