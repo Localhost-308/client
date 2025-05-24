@@ -1,16 +1,24 @@
 import React, { memo, useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import Screen from "../../../shared/components/screen/Screen";
-import { URL_AREA } from "../../../shared/constants/urls";
+import { URL_AREA, URL_REPORT } from "../../../shared/constants/urls";
 import { useRequests } from "../../../shared/hooks/useRequests";
 import { AreaPoint } from "../../../shared/types/AreaPointType";
 import { MethodsEnum } from "../../../shared/enums/methods.enum";
 import AreaCard from "../../../shared/components/card/AreaCard";
 import styles from "../styles/SearchArea.module.css";
 import Search from "antd/es/input/Search";
+import { Button } from "antd";
+import { FilePdfOutlined } from "@ant-design/icons";
+import { useLoading } from "../../../shared/components/loadingProvider/LoadingProvider";
+import { useGlobalReducer } from "../../../store/reducers/globalReducer/useGlobalReducer";
+import { NotificationEnum } from "../../../shared/types/NotificationType";
+import FirstScreen from "../../firstScreen";
 
 const SearchArea: React.FC = () => {
   const { request } = useRequests();
+  const { isLoading, setLoading } = useLoading();
+  const { setNotification } = useGlobalReducer();
   const [areas, setAreas] = useState<AreaPoint[]>([]);
   const [markedArea, setMarkedArea] = useState<AreaPoint>();
   const [adjustedAreas, setAdjustedAreas] = useState<AreaPoint[]>([]);
@@ -25,6 +33,34 @@ const SearchArea: React.FC = () => {
     }
   }
 
+  async function getReport() {
+    setLoading(true);
+    try {
+      await request(
+        `${URL_REPORT}/${markedArea?.area_id}`, 
+        MethodsEnum.GET, 
+        saveBlobFile, 
+        undefined,
+        'blob'
+      );
+    }
+    catch(error) {
+      setNotification(String(error), NotificationEnum.ERROR);
+    }
+    finally {
+      setLoading(false);
+    }
+  }
+
+  function saveBlobFile(blobFile: any) {
+    const url = window.URL.createObjectURL(blobFile);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'relatorio.pdf';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
   useEffect(() => {
     if (areas.length > 0) {
       setAdjustedAreas(adjustCoordinates(areas));
@@ -33,12 +69,25 @@ const SearchArea: React.FC = () => {
 
   return (
     <Screen>
+      {isLoading && <FirstScreen />}
       <div className={styles.container}>
         <div className={styles.mainContent}>
           <div className={styles.sidebar}>
           <Search placeholder="Pesquisar (cidade, empresa ou área)" onSearch={e => handleSearch(e)} enterButton/>
             {markedArea ? (
-                <AreaCard area={markedArea} />
+                <>
+                    <AreaCard area={markedArea} />
+                    <div className={styles.buttonWrapper}>
+                      <Button
+                          type="primary"
+                          size="middle"
+                          icon={<FilePdfOutlined />}
+                          onClick={() => getReport()}
+                          >
+                          Salvar
+                      </Button>
+                    </div>
+                </>
             ) : (
                 <p>Selecione uma área no mapa para ver os detalhes</p>
             )}
