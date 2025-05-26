@@ -4,4 +4,5 @@ export interface UserType {
     last_name: string;
     email: string;
     cargo: string;
+    company_id: number;
 }

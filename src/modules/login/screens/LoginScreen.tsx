@@ -41,6 +41,7 @@ const LoginScreen = () => {
               setItemStorage(USER_ID, user.id.toString());
               setItemStorage(FIRST_NAME, user.first_name);
               setItemStorage(LAST_NAME, user.last_name);
+              setItemStorage('COMPANY_ID', user.company_id.toString());
             }
         })
         .finally(() => setLoading(false));
