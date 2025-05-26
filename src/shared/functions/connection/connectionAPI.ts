@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig, ResponseType } from "axios";
 
 import { ERROR_ACCESS_DANIED, ERROR_BAD_REQUEST, ERROR_GENERIC, ERROR_NOT_FOUND, ERROR_TOKEN_EXPIRES } from "../../constants/errosStatus";
 import { MethodsEnum } from "../../enums/methods.enum";
@@ -9,29 +9,30 @@ import { AUTHORIZATION_KEY } from "../../constants/authorizationConstants";
 export type MethodType = 'get' | 'post' | 'put' | 'patch' | 'delete'; 
 
 export default class ConnectionAPI {
-    static async call<T>(url: string, method: MethodType, body?:unknown): Promise<T>{
-        
-        const config:AxiosRequestConfig = {
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getItemStorage(AUTHORIZATION_KEY)}`
-            }
+    static async call<T>(url: string, method: MethodType, body?:unknown, responseType?: string): Promise<T>{
+      
+      const config:AxiosRequestConfig = {
+          headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${getItemStorage(AUTHORIZATION_KEY)}`
+          }
         };
+      config.responseType = (responseType ?? 'json') as ResponseType;
 
-        switch (method) {
-            case(MethodsEnum.POST):
-            case(MethodsEnum.PATCH): 
-            case(MethodsEnum.PUT):
-                return (await axios[method]<T>(url, body, config)).data;
-            case(MethodsEnum.GET):
-            case(MethodsEnum.DELETE):
-            default:
-                return (await axios[method]<T>(url, config)).data;
-        }
+      switch (method) {
+          case(MethodsEnum.POST):
+          case(MethodsEnum.PATCH): 
+          case(MethodsEnum.PUT):
+              return (await axios[method]<T>(url, body, config)).data;
+          case(MethodsEnum.GET):
+          case(MethodsEnum.DELETE):
+          default:
+              return (await axios[method]<T>(url, config)).data;
+      }
     }
 
-    static async connect<T>(url: string, method: MethodType, body?:unknown): Promise<T>{
-        return ConnectionAPI.call<T>(url, method, body).catch((error) => {
+    static async connect<T>(url: string, method: MethodType, body?:unknown, responseType?: string): Promise<T>{
+        return ConnectionAPI.call<T>(url, method, body, responseType).catch((error) => {
             if(error.response){
                 switch (error.response.status) {
                     case 401:

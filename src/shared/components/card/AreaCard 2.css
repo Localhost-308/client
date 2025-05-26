@@ -1,4 +1,4 @@
-.card {
+.tree-count-card {
     background: linear-gradient(135deg, #f6ffed 0%, #e6f7ff 100%);
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -12,24 +12,15 @@
     box-shadow: 0 8px 24px rgba(82, 196, 26, 0.2);
   }
   
-  .header {
-    text-align: center;
-  }
   .card-content {
     display: flex;
     flex-direction: column;
-    align-items: left;
+    align-items: center;
     gap: 15px;
-    padding-left: 10px;
     font-size: 18px;
   }
   
   .tree-icon {
     font-size: 48px;
-    color: #45b50e;
-  }
-
-  .vertical-align {
-    margin-right: 10px;
-    vertical-align: middle;
+    color: #52c41a;
   }

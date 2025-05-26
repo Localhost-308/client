@@ -19,7 +19,7 @@ export const validateUser = (user: InsertUser): Partial<InsertUser> => {
         errors.email = 'O email é inválido.';
     }
 
-    if (!user.password || !passwordRegex.test(user.password)) {
+    if (!user.password ) {
         errors.password = 'A senha deve ter pelo menos 6 caracteres, incluindo uma letra e um número.';
     }
 
@@ -38,9 +38,9 @@ export const validateImportFileData = (data: ImportFileData): Partial<ImportFile
         errors.csv = 'O arquivo CSV deve ser fornecido.';
     }
 
-    if (data.typeData && !['csv', 'json'].includes(data.typeData)) {
-        errors.typeData = 'O tipo de dado é inválido. Deve ser "csv".';
-    }
+    // if (data.typeData && !['csv', 'json'].includes(data.typeData)) {
+    //     errors.typeData = 'O tipo de dado é inválido. Deve ser "csv".';
+    // }
 
     return errors;
 };
