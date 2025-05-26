@@ -20,9 +20,10 @@ export const useRequests = () => {
     url: string,
     method: MethodType,
     saveGlobal?: (object: T) => void,
-    body?: unknown
+    body?: unknown,
+    responseType?: string
   ): Promise<T | undefined> => {
-    const response: T | undefined = await ConnectionAPI.connect<T>(url, method, body)
+    const response: T | undefined = await ConnectionAPI.connect<T>(url, method, body, responseType)
       .then((data) => {
         if (saveGlobal) {
           saveGlobal(data);

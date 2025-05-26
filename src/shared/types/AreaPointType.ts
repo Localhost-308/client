@@ -1,4 +1,5 @@
 export interface AreaPoint {
+  area_id: number;
   area_name: string;
   city: string;
   company_name: string;
