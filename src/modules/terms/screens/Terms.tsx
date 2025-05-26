@@ -1,7 +1,5 @@
 import { lazy, useEffect, useState } from "react";
 import { Table, Drawer, Input, Button } from "antd";
-import Modal from "antd/es/modal/Modal";
-import ButtonAntd from "antd/es/button/button";
 import { ColumnsType } from "antd/es/table/interface";
 
 import FirstScreen from "../../firstScreen";
@@ -12,27 +10,21 @@ import { useLoading } from "../../../shared/components/loadingProvider/LoadingPr
 import { DashboardRoutesEnum } from "../../dashboard/routes";
 import { TermsType } from "../../../shared/types/TermsType";
 import { BoxButtons } from "../../../shared/components/styles/boxButtons.style";
-import { PlusCircleFilled } from "@ant-design/icons";
-import { LimitedContainer } from "../../../shared/components/styles/limited.styled";
-import SelectFilter from "../../../shared/components/inputs/selectFilter/SelectFilter";
 
 const Screen = lazy(() => import('../../../shared/components/screen/Screen'));
 
 const Terms = () => {
     const { request } = useRequests();
     const { isLoading, setLoading } = useLoading();
-    const [terms, setTerms] = useState<TermsType[]>([]);
+    const [termsAndConditions, setTermsAndConditions] = useState<TermsType[]>([]);
     const [selectedTerms, setSelectedTerms] = useState<TermsType | null>(null);
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState('');
 
-    // HOOKS
-    const {}
-
     useEffect(() => {
         setLoading(true);
-        request(URL_TERMS, MethodsEnum.GET, setTerms)
+        request(URL_TERMS, MethodsEnum.GET, setTermsAndConditions)
             .then(() => setLoading(false));
     }, []);
 
@@ -111,7 +103,7 @@ const Terms = () => {
         setLoading(true);
         request(`${URL_TERMS}/${selectedTerms.id}`, MethodsEnum.PUT, undefined, updatedTerms)
           .then(() => {
-            setTerms((prev) =>
+            setTermsAndConditions((prev) =>
               prev.map((term) =>
                 term.id === updatedTerms.id ? updatedTerms : term
               )
@@ -122,39 +114,15 @@ const Terms = () => {
           .finally(() => setLoading(false));
       };
 
-    // MODAL
-    const [openModalAdd, setOpenModalAdd] = useState(false);
-    const [confirmLoadingModalAdd, setConfirmLoadingModalAdd] = useState(false);
-
-    const showModalAdd = () => {
-        
-        setOpenModalAdd(true);
-    };
-
-    const handleOkAdd = (event: any) => {
-        event.preventDefault();
-        if (products) handleInsert(event, productId, setConfirmLoadingModalAdd, setOpenModalAdd).then(() => {
-            let firstPage = 1;
-            fetchData(firstPage);
-        });
-    };
-
-    const handleCancelAdd = () => {
-        setOpenModalAdd(false);
-        resetFormInsert();
-    };
-
-
     return (
         <Screen listBreadcrumb={listBreadcrumb}>
             {isLoading && <FirstScreen />}
             <BoxButtons>
                 <h1>Termos e Condições</h1>
-                <PlusCircleFilled style={{ color: 'green' }} onClick={showModalAdd} />
             </BoxButtons>
 
             <Table columns={columns}
-                dataSource={terms}
+                dataSource={termsAndConditions}
                 rowKey={(obj) => obj.id} />
 
             <Drawer
@@ -191,41 +159,6 @@ const Terms = () => {
                     <div style={{ whiteSpace: 'pre-line' }}>{selectedTerms?.text}</div>
                 )}
             </Drawer>
-            <Modal title="Adicionar Caracterização"
-                open={openModalAdd}
-                confirmLoading={confirmLoadingModalAdd}
-                onCancel={handleCancelAdd}
-                footer={[
-                    <ButtonAntd key="back" onClick={handleCancelAdd}>
-                        Cancelar
-                    </ButtonAntd>,
-                    <ButtonAntd key="submit" type="primary" loading={confirmLoadingModalAdd} onClick={handleOkAdd}>
-                        Adicionar
-                    </ButtonAntd>
-                ]}>
-                <LimitedContainer width={400}>
-                    <SelectFilter label="Empresas"
-                        onChange={(event) => handleChangeSelectInsert(event)}
-                        defaultValue={'Selecionar'}
-                        value={addrLv0Insert.company_id}
-                        margin="0px 0px 15px 0px"
-                        options={
-                            characterizations.map((char) => ({
-                                value: `${char.id}`,
-                                label: `${char.id} - ${char.description}`
-                            }))} />
-                    {errorsAdd?.company_id && <p style={{ color: 'red', fontWeight: 500 }}>{String(errorsAdd.company_id)}</p>}
-                    <Input onChange={(event) => onChangeInsert(event, 'name')}
-                            value={addrLv0Insert.name} 
-                            margin="0px 0px 15px 0px" 
-                            label="Part Number *" 
-                            placeholder="Part Number" 
-                            type="text" 
-                            id="part_number" />
-                    {errorsAdd?.name && <p style={{ color: 'red', fontWeight: 500 }}>{String(errorsAdd.?.name)}</p>}
-                </LimitedContainer>
-            </Modal>
-
         </Screen>
     );
 };

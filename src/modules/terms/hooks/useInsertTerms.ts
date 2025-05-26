@@ -9,7 +9,6 @@ import { URL_TERMS } from "../../../shared/constants/urls";
 
 export const useInsertTerms = () => {
     const {setNotification} = useGlobalReducer();
-    const [errorsAdd, setErrorsAdd] = useState<Partial<InsertTerms>>({});
     const [terms, setTerms] = useState<InsertTerms>({
         text: ''
     });
@@ -43,7 +42,6 @@ export const useInsertTerms = () => {
     }
     return{
         terms,
-        errorsAdd,
         setTerms,
         onChangeInsert,
         resetFormInsert,
