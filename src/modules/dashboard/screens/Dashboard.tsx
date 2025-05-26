@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ReactECharts from 'echarts-for-react';
-import { DatePicker, Table, TableColumnsType } from "antd";
+import { DatePicker, Modal, Table, TableColumnsType } from "antd";
 import "dayjs/locale/pt-br";
 
 import Screen from "../../../shared/components/screen/Screen";
@@ -10,7 +11,7 @@ import Select from "../../../shared/components/inputs/select/Select";
 import ChartContainer from "../../../shared/components/charts/ChartContainer";
 import ChartGridItem from "../../../shared/components/charts/ChartGridItem";
 import { useRequests } from "../../../shared/hooks/useRequests";
-import { URL_AREA_INFORMATION, URL_AREA_INFORMATION_TREE, URL_AREA, URL_THREATS } from "../../../shared/constants/urls";
+import { URL_AREA_INFORMATION, URL_AREA_INFORMATION_TREE, URL_AREA, URL_THREATS, URL_USER } from "../../../shared/constants/urls";
 import { MethodsEnum } from "../../../shared/enums/methods.enum";
 import { useGlobalReducer } from "../../../store/reducers/globalReducer/useGlobalReducer";
 import { NotificationEnum } from "../../../shared/types/NotificationType";
@@ -33,8 +34,12 @@ import { formatNumberWithThousandSeparator, formatToMillion } from "../../../sha
 import TreeCountCard from "../../../shared/components/card/TreeCountCard";
 import DeforestationCard from "../../../shared/components/card/DeforestationCard";
 import { DeforestationDataType } from "../../../shared/types/DeforestationDataType";
+import { TermsType } from "../../../shared/types/TermsType";
+import { LoginRoutesEnum } from "../../login/routes";
+import TextArea from "antd/es/input/TextArea";
 
 const Dashboard: React.FC = () => {
+    const navigate = useNavigate();
     const { request } = useRequests();
     const { setNotification } = useGlobalReducer();
     const { isLoading, setLoading } = useLoading();
@@ -74,6 +79,9 @@ const Dashboard: React.FC = () => {
     const [chartSoilOptions, setChartSoilOptions] = useState({});
     const [chartFundingOptions, setChartFundingOptions] = useState({});
 
+    // TERMS
+    const [terms, setTerms] = useState<TermsType>();
+
     // EVENTS
     useEffect(() => {
         const fetchData = async () => {
@@ -99,7 +107,18 @@ const Dashboard: React.FC = () => {
             }
         };
         fetchData();
+        request(`${URL_USER}/accept-last-version`, MethodsEnum.GET).then((data:any) => {
+            if(data && data.id){
+                setTerms(data);
+            }
+        })
     }, []);
+
+    useEffect(() => {
+        if(terms){
+            showModal();
+        }
+    }, [terms])
 
     useEffect(() => {
         if (co2.length > 0) {
@@ -706,6 +725,31 @@ const Dashboard: React.FC = () => {
         setSpecieTreeSelected(value)
     }
 
+    // MODAL
+    const [open, setOpen] = useState(false);
+
+    const showModal = () => {
+        setOpen(true);
+    }
+
+    const hideModal = () => {
+        setOpen(false);
+        navigate(LoginRoutesEnum.LOGIN);
+    }
+
+    const approveTerms = () => {
+        setLoading(true);
+        request(`${URL_USER}/terms-and-conditions/accept`, MethodsEnum.POST)
+        .then(() => {
+
+            setNotification('Termo Aprovado com Sucesso!', NotificationEnum.SUCCESS)
+        })
+        .finally(() => {
+            setLoading(false);
+            setOpen(false);
+        });
+    }
+
     return (
         <Screen listBreadcrumb={listBreadcrumb}>
             {isLoading && <FirstScreen />}
@@ -808,6 +852,16 @@ const Dashboard: React.FC = () => {
                     </ChartGridItem>
                 )}
             </ChartContainer>
+            <Modal title={`Termos e Condições ${terms ? "versão " + terms?.version : ''}`}
+                open={open}
+                onOk={() => {
+                    approveTerms();
+                }}
+                onCancel={hideModal}
+                okText="Sim"
+                cancelText="Cancelar">
+                {terms && <TextArea value={terms.text}/>}
+            </Modal>
         </Screen>
     )
 }

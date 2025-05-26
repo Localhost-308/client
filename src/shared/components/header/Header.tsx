@@ -17,6 +17,7 @@ import {
     EnvironmentOutlined,
     QuestionCircleOutlined,
     BulbOutlined,
+    SnippetsOutlined,
 } from '@ant-design/icons';
 
 import logo from '../../../../public/kersys.png';
@@ -34,6 +35,7 @@ import { useWindowSize } from '../../hooks/useWindowSize';
 import { ImportCSVRoutesEnum } from '../../../modules/importCSV/routes';
 import { SearchAreaRoutesEnum } from '../../../modules/searchArea/routes';
 import { InsigthsRoutesEnum } from '../../../modules/insights/routes';
+import { TermsRoutesEnum } from '../../../modules/terms/routes';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -116,6 +118,12 @@ const Header = () => {
             icon: <BulbOutlined />,
             label: 'Insights',
             onClick: () => navigate(InsigthsRoutesEnum.INSIGHTS)
+        },
+        {
+            key: 'terms_key',
+            icon: <SnippetsOutlined />,
+            label: 'Termos e Condições',
+            onClick: () => navigate(TermsRoutesEnum.TERMS)
         },
         {
             key: 'external_link',

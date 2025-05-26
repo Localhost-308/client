@@ -11,6 +11,7 @@ import { dashboardRoutes } from "./modules/dashboard/routes";
 import { importCSVRoutes } from "./modules/importCSV/routes";
 import { searchAreaRoutes } from "./modules/searchArea/routes";
 import { predictRoutes } from "./modules/insights/routes";
+import { termsRoutes } from "./modules/terms/routes";
 
 const routes: RouteObject[] = [...loginRoutes];
 const routesLoggedIn: RouteObject[] = [
@@ -19,7 +20,8 @@ const routesLoggedIn: RouteObject[] = [
   ...dashboardRoutes,
   ...userRoutes,
   ...firstScreenRoutes,
-  ...searchAreaRoutes
+  ...searchAreaRoutes,
+  ...termsRoutes
 ]
 
 const router: RemixRouter = createBrowserRouter([...routes, ...routesLoggedIn]);
